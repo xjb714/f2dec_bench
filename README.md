@@ -18,9 +18,11 @@ run :
 2.   `./main`
 
 
-benchmark results:
-CPU : AMD R7 7840H , OS : ubuntu 24.04
-compiler : **(1)icpx 2025.0.4** **(2)clang 18.1.3** **(3)gcc13.3** 
+benchmark results :
+``CPU : AMD R7 7840H , OS : ubuntu 24.04``
+``compiler : (1)icpx 2025.0.4 (2)clang 18.1.3 (3)gcc13.3``
+
+
 ![benchmark](image.png)
 
 author : Xiang Jun Bo (xjb) , email : 1302035400@qq.com
