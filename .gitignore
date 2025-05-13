@@ -1,0 +1,4 @@
+./main
+./main_icpx
+./main_clang
+./main_gcc

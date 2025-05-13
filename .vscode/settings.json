@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "*.dbclient-js": "javascript",
+        "d2s_small_table.h": "c",
+        "ieee16.h": "c",
+        "ieee64_with_uint128.c": "cpp",
+        "string": "cpp"
+    }
+}
