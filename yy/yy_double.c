@@ -6213,7 +6213,8 @@ void f64_bin_to_dec_xjb_v2(u64 sig_bin, i32 exp_bin, u64 *sig_dec, i32 *exp_dec)
 {
     typedef __uint128_t u128;
     int odd = sig_bin & 1;
-    const int offset = 3; // range [3,11] all right
+    const int offset = 10 ; // range [3,10] all right
+    const u64 maskL = (1ull<<offset) - 1;
     u64 irregular = (sig_bin == 0x10000000000000ull);
     
     if (likely(!irregular))
@@ -6270,9 +6271,10 @@ void f64_bin_to_dec_xjb_v2(u64 sig_bin, i32 exp_bin, u64 *sig_dec, i32 *exp_dec)
     // u64 one = (((dot_one ) * (u128)10) >> 64) + (((u64)((dot_one ) * (u128)10)) >> 63);
     {
         //round to nearest
-        one = (((dot_one) * (u128)10) >> 64) + (((u64)((dot_one) * (u128)10)) >> 63);
+        u64 rest=((sig_lo & maskL)*10)>>offset;
+        one = (((dot_one) * (u128)10) >> 64) + (((u64)((dot_one) * (u128)10)+rest) >> 63);
         //round to even
-        if (unlikely((u64)((dot_one) * (u128)10) == (1ull << 63))) // generate branch instruction
+        if (unlikely((u64)((dot_one) * (u128)10)+rest == (1ull << 63))) // generate branch instruction
             one -= ((!((((dot_one) * (u128)10) >> 64) & 1)));      // if(even) one--;
         //adjust to correct result
         if(unlikely(irregular)){
