@@ -9,17 +9,17 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "teju/config.h"
+#include "../config.h"
 
 #ifdef __cplusplus
 extern "C" {
+    teju32_fields_t teju_ieee32_with_uint128(teju32_fields_t binary);
+}
 #endif
 
-teju32_fields_t
-teju_ieee32_with_uint128(teju32_fields_t binary);
-
 #ifdef __cplusplus
-}
+
+
 #endif
 
 #endif // TEJU_TEJU_GENERATED_IEEE32_WITH_UINT128_H_

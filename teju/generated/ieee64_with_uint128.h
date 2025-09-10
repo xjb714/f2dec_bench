@@ -13,13 +13,11 @@
 
 #ifdef __cplusplus
 extern "C" {
+    teju64_fields_t teju_ieee64_with_uint128(teju64_fields_t binary);
+}
 #endif
 
-teju64_fields_t
-teju_ieee64_with_uint128(teju64_fields_t binary);
-
 #ifdef __cplusplus
-}
 #endif
 
 #endif // TEJU_TEJU_GENERATED_IEEE64_WITH_UINT128_H_

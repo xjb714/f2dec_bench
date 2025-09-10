@@ -5,7 +5,7 @@
 
 #include "ieee32_with_uint128.h"
 
-#include "teju/literal.h"
+#include "../literal.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -136,8 +136,9 @@ static struct {
   { 0xf6433fbd, 0x00000003 },
 };
 
-#include "teju/teju.h"
+#include "../teju.h"
 
 #ifdef __cplusplus
 }
 #endif
+

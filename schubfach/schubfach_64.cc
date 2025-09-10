@@ -935,14 +935,17 @@ FloatingDecimal64 ToDecimal64(uint64_t ieee_significand, uint64_t ieee_exponent)
 //      if (up_inside || wp_inside) // NB: At most one of u' and w' is in R_v.
         if (up_inside != wp_inside)
         {
-            return {sp + wp_inside, k + 1};
+            //return {sp + wp_inside, k + 1};
+            return { (sp + wp_inside) * 10, k};
         }
     }
 
-    const bool u_inside = lower <= 4 * s;
+    const bool u_inside = lower <= 4 * s;// lower 
     const bool w_inside =          4 * s + 4 <= upper;
-    if (u_inside != w_inside)
+    if (u_inside != w_inside)// 1,0 or 0,1 , only irregular double 
     {
+        // static int sum =0;
+        // printf("sum=%d,w_inside=%d\n",sum++,w_inside);
         return {s + w_inside, k};
     }
 
