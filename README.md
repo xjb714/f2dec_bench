@@ -10,20 +10,37 @@ schubfach_xjb  | It is improved by schubfach and has the same output result.
 [yy_fast](https://github.com/ibireme/c_numconv_benchmark.git) | yy's algorithm , Some calculation steps have been modified. origin link : https://github.com/ibireme/c_numconv_benchmark/blob/master/vendor/yy_double/yy_double.c
 [yy_full](https://github.com/ibireme/c_numconv_benchmark.git) | Same as yy_fast.
 [teju](https://github.com/cassioneri/teju_jagua.git) | youtube  link : https://www.youtube.com/watch?v=fPZ1ZdA7Iwc . An academic paper will be written to provide proof of correctness.
-[xjb] | may be correct . need to proof.
+[xjb] | Chinese version proof paper : 
+
+
 
 
 run :
-1.   `make`
-2.   `./main`
+(1)benchmark double:
+1. set variable BENCH_DOUBLE = 1
+2. select a compiler
+gcc: `make g`
+icpx:`make i`
+clang:`make c`
+
+
+(2)benchmark float:
+1. set variable BENCH_DOUBLE = 0
+2. select a compiler
+gcc: `make g`
+icpx:`make i`
+clang:`make c`
 
 
 benchmark results :
 ``CPU : AMD R7 7840H , OS : ubuntu 24.04``
-``compiler : (1)icpx 2025.0.4 (2)clang 18.1.3 (3)gcc13.3``
+``compiler : (1)gcc13.3 (2)icpx 2025.0.4 (3)clang 18.1.3 ``
 
+double:
+![benchmark](double.png)
 
-![benchmark](image.png)
+float:
+![benchmark](float.png)
 
-author : Xiang Jun Bo (xjb) , email : 1302035400@qq.com
+author : Xiang Jun Bo (xjb) , China , email : 1302035400@qq.com
 date : 2025.5.13

@@ -3,7 +3,9 @@
 #include <chrono>
 #include <random>
 
-#define BENCH_DOUBLE 0
+#ifndef BENCH_DOUBLE
+    #define BENCH_DOUBLE 1
+#endif
 
 
 #define BENCH_FLOAT !BENCH_DOUBLE
