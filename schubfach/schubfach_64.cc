@@ -20,7 +20,7 @@
 #if _MSC_VER
     #include <intrin.h>
 #endif
-#include<immintrin.h>
+//#include<immintrin.h>
 #include<iostream>
 
 #ifndef SF_ASSERT
@@ -878,7 +878,7 @@ FloatingDecimal64 ToDecimal64(uint64_t ieee_significand, uint64_t ieee_exponent)
 {
     uint64_t c;
     int32_t q;
-    if ( __glibc_likely(ieee_exponent != 0))
+    if ( ieee_exponent != 0)[[likely]]
     {
         c = Double::HiddenBit | ieee_significand;
         q = static_cast<int32_t>(ieee_exponent) - Double::ExponentBias;

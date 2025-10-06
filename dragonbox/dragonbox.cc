@@ -998,7 +998,7 @@ static inline FloatingDecimal64 ToDecimal64(const uint64_t ieee_significand, con
 
     uint64_t m2;
     int32_t  e2;
-    if ( __glibc_likely(ieee_exponent != 0))
+    if ( ieee_exponent != 0)[[likely]]
     {
         m2 = Double::HiddenBit | ieee_significand;
         e2 = static_cast<int32_t>(ieee_exponent) - Double::ExponentBias;

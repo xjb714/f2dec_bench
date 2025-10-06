@@ -7,7 +7,7 @@
 #include <math.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <immintrin.h>
+//#include <immintrin.h>
 
 /*==============================================================================
  * Compiler Macros

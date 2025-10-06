@@ -10,7 +10,7 @@ schubfach_xjb  | It is improved by schubfach and has the same output result.
 [yy_fast](https://github.com/ibireme/c_numconv_benchmark.git) | yy's algorithm , Some calculation steps have been modified. origin link : https://github.com/ibireme/c_numconv_benchmark/blob/master/vendor/yy_double/yy_double.c
 [yy_full](https://github.com/ibireme/c_numconv_benchmark.git) | Same as yy_fast.
 [teju](https://github.com/cassioneri/teju_jagua.git) | youtube  link : https://www.youtube.com/watch?v=fPZ1ZdA7Iwc . An academic paper will be written to provide proof of correctness.
-[xjb] | Chinese version proof paper : print_acc.7z
+[xjb] | Chinese version proof paper : print_acc.zip print_acc_by_xjb_v3.docx
 
 
 
