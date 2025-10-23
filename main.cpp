@@ -11,7 +11,7 @@
 #define BENCH_FLOAT !BENCH_DOUBLE
 
 
-//double
+//double and float
 #include "schubfach/schubfach_i.hpp"
 #include "schubfach_xjb/schubfach_xjb_i.hpp"
 #include "dragonbox/dragonbox_i.hpp"
@@ -445,7 +445,7 @@ int main()
 #endif
 
 
-    printf("exit main\n");
+    //printf("exit main\n");
 
     return 0;
 }
