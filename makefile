@@ -7,13 +7,13 @@ BENCH_DOUBLE = 1 # 0 : float, 1 : double
 # 	./main
 
 g:
-	g++ -O3 -march=native main.cpp -DBENCH_DOUBLE=$(BENCH_DOUBLE) -o main_gcc
+	g++ -O3 -march=native main.cpp -mno-avx512f -mno-avx -mno-avx2 -DBENCH_DOUBLE=$(BENCH_DOUBLE) -o main_gcc
 	./main_gcc
 i:
-	icpx -O3 -march=native main.cpp -DBENCH_DOUBLE=$(BENCH_DOUBLE) -o main_icpx
+	icpx -O3 -march=native main.cpp -mno-avx512f -mno-avx -mno-avx2 -DBENCH_DOUBLE=$(BENCH_DOUBLE) -o main_icpx
 	./main_icpx
 c:
-	clang++ -O3  -march=native main.cpp -DBENCH_DOUBLE=$(BENCH_DOUBLE) -o main_clang
+	clang++ -O3  -march=native main.cpp -mno-avx512f -mno-avx -mno-avx2 -DBENCH_DOUBLE=$(BENCH_DOUBLE) -o main_clang
 	./main_clang
 
 
