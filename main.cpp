@@ -26,8 +26,8 @@
 #include "xjb/xjb32_i.hpp"
 
 
-const int N = 1e8;
-const int N_float = 1e8; // float data size
+const int N = 1e7;
+const int N_float = 1e7; // float data size
 const int M = 9;//double algorithm count
 const int MF = 3;//float algorithm count
 
@@ -240,7 +240,7 @@ void bench_float_single_impl(int i)
         (void)d;
         (void)e;
     }
-    printf("cost %4.4lf ms,every float cost %2.4lf ns\n", (t2 - t1) / 1e6, (t2 - t1) * (1.0 / N));
+    printf("cost %4.4lf ms,every float cost %2.4lf ns\n", (t2 - t1) / 1e6, (t2 - t1) * (1.0/ N));
 }
 
 void bench_double_all_algorithm()

@@ -5,17 +5,24 @@ BENCH_DOUBLE = 1 # 0 : float, 1 : double
 # 	icpx -O3 -march=native main.cpp -o main
 # 	#icpx -O3 -march=native -S main.cpp -o main.s
 # 	./main
-
+#x86-64 compilers
 g:
-	g++ -O3 -march=native main.cpp -mno-avx512f -mno-avx -mno-avx2 -DBENCH_DOUBLE=$(BENCH_DOUBLE) -o main_gcc
+	g++ -O3 -march=native main.cpp -DBENCH_DOUBLE=$(BENCH_DOUBLE) -o main_gcc
 	./main_gcc
 i:
-	icpx -O3 -march=native main.cpp -mno-avx512f -mno-avx -mno-avx2 -DBENCH_DOUBLE=$(BENCH_DOUBLE) -o main_icpx
+	icpx -O3 -march=native main.cpp  -DBENCH_DOUBLE=$(BENCH_DOUBLE) -o main_icpx
 	./main_icpx
-c:
-	clang++ -O3  -march=native main.cpp -mno-avx512f -mno-avx -mno-avx2 -DBENCH_DOUBLE=$(BENCH_DOUBLE) -o main_clang
+c:#clang with all instruction sets,generate AVX512 code on x86-64 AMD zen4
+	clang++ -O3  -march=native main.cpp -DBENCH_DOUBLE=$(BENCH_DOUBLE) -o main_clang
+	./main_clang
+c1:#clang without AVX512, generate AVX2 code on x86-64 AMD zen4
+	clang++ -O3  -march=native main.cpp -mno-avx512f -DBENCH_DOUBLE=$(BENCH_DOUBLE) -o main_clang
+	./main_clang
+c2:#clang without AVX512 and AVX2, generate normal code on x86-64 AMD zen4
+	clang++ -O3  -march=native main.cpp -mno-avx512f -mno-avx2 -DBENCH_DOUBLE=$(BENCH_DOUBLE) -o main_clang
 	./main_clang
 
+#apple M1 : please use " make c "
 
 #all compilers
 a:

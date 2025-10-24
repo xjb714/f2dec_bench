@@ -127,6 +127,6 @@ static inline void xjb_f32_to_dec(float v,unsigned int* dec,int *e10)
         one += (exp_bin == 31 - 150) + (exp_bin == 214 - 150) + (exp_bin == 217 - 150);// more fast
         one = (half_ulp > (((u64)1 << BIT) - 1) - dot_one_36bit) ? 10 : one;
     }
-    *dec = (uint32_t)(ten + one);
+    *dec = ten + one;
     *e10 = k;
 }
