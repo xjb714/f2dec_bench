@@ -449,7 +449,7 @@ int main()
 #if BENCH_DOUBLE
     bench_double();
     
-    //check();
+    check();
 #endif
 
 
