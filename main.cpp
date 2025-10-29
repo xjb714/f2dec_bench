@@ -48,6 +48,7 @@ int *e10_float;
 
 std::vector<std::pair<std::string, void (*)(double, unsigned long long *, int *)>> algorithm_set;//double
 std::vector<std::pair<std::string, void (*)(float, unsigned int *, int *)>> algorithm_float_set;//float
+//std::vector<std::pair<std::string, void (*)(float*, unsigned int *, int *,unsigned int,unsigned int*)>> algorithm_float_set;//float
 
 std::random_device rd;
 std::mt19937_64 gen(rd());
@@ -136,17 +137,12 @@ void init_float()
     algorithm_float_set.clear();
 
 
-    algorithm_float_set.push_back({std::string("xjb32"), xjb_f32_to_dec});
     algorithm_float_set.push_back({std::string("schubfach32_xjb"), schubfach_xjb_f32_to_dec});
     algorithm_float_set.push_back({std::string("schubfach32"), schubfach_f32_to_dec});
-    // algorithm_float_set.push_back({std::string("schubfach_xjb"), schubfach_xjb_f64_to_dec});
-    // algorithm_float_set.push_back({std::string("dragonbox"), dragonbox_f64_to_dec});
     algorithm_float_set.push_back({std::string("ryu32"), ryu_f32_to_dec});
     algorithm_float_set.push_back({std::string("teju32"), teju_f32_to_dec});
-    // algorithm_float_set.push_back({std::string("yy_fast"), yy_fast_f64_to_dec});
-    // algorithm_float_set.push_back({std::string("yy_full"), yy_full_f64_to_dec});
-    // algorithm_float_set.push_back({std::string("xjb"), xjb_f64_to_dec});
-    // algorithm_float_set.push_back({std::string("ldouble"), ldouble_f64_to_dec});
+    algorithm_float_set.push_back({std::string("xjb32"), xjb_f32_to_dec});
+
 
     printf("init float algorithm set finish\n");
 }
@@ -204,9 +200,12 @@ void bench_double_single_impl(int i)
 }
 void bench_float_single_impl(int i)
 {
+    unsigned int dec;
+    int e10;
+    unsigned int sum=0;
     const int N = N_float;
     std::string name = algorithm_float_set[i].first;
-    void (*func)(float, unsigned int *, int *) = algorithm_float_set[i].second;
+    //void (*func)(float*, unsigned int *, int *) = algorithm_float_set[i].second;
     unsigned int *dec_p = &dec_float[0];
     int *e10_p = &e10_float[0];
     printf("%d. bench %14s : ", i, name.c_str());
@@ -218,11 +217,20 @@ void bench_float_single_impl(int i)
     // so this method is not used.
     // for(int j=0;j<N;++j)func(data[j],&dec_p[j],&e10_p[j]);
 
-    if (i == 0)for (int j = 0; j < N; ++j)xjb_f32_to_dec(data_float[j], &dec_p[j], &e10_p[j]);
-    if (i == 1)for (int j = 0; j < N; ++j)schubfach_xjb_f32_to_dec(data_float[j], &dec_p[j], &e10_p[j]);
-    if (i == 2)for (int j = 0; j < N; ++j)schubfach_f32_to_dec(data_float[j], &dec_p[j], &e10_p[j]);
-    if (i == 3)for (int j = 0; j < N; ++j)ryu_f32_to_dec(data_float[j], &dec_p[j], &e10_p[j]);
-    if (i == 4)for (int j = 0; j < N; ++j)teju_f32_to_dec(data_float[j], &dec_p[j], &e10_p[j]);
+    if (i == 0)for (int j = 0; j < N; ++j)schubfach_xjb_f32_to_dec(data_float[j], &dec_p[j], &e10_p[j]);
+    if (i == 1)for (int j = 0; j < N; ++j)schubfach_f32_to_dec(data_float[j], &dec_p[j], &e10_p[j]);
+    if (i == 2)for (int j = 0; j < N; ++j)ryu_f32_to_dec(data_float[j], &dec_p[j], &e10_p[j]);
+    if (i == 3)for (int j = 0; j < N; ++j)teju_f32_to_dec(data_float[j], &dec_p[j], &e10_p[j]);
+    if (i == 4)for (int j = 0; j < N; ++j)xjb_f32_to_dec(data_float[j], &dec_p[j], &e10_p[j]);
+    
+    //for (int j = 0; j < N; ++j){xjb_f32_to_dec(data_float[j], &dec, &e10);sum+=dec;}
+    //xjb_f32_to_dec(data_float, &dec, &e10, N, &sum); //sum += dec;
+    
+    // if (i == 0)for (int j = 0; j < N; ++j){xjb_f32_to_dec(data_float[j], &dec, &e10);sum+=dec;}//gcc not inline this function correctly
+    // if (i == 1)for (int j = 0; j < N; ++j){schubfach_xjb_f32_to_dec(data_float[j], &dec, &e10);sum+=dec;}
+    // if (i == 2)for (int j = 0; j < N; ++j){schubfach_f32_to_dec(data_float[j], &dec, &e10);sum+=dec;}
+    // if (i == 3)for (int j = 0; j < N; ++j){ryu_f32_to_dec(data_float[j], &dec, &e10);sum+=dec;}
+    // if (i == 4)for (int j = 0; j < N; ++j){teju_f32_to_dec(data_float[j], &dec, &e10);sum+=dec;}
     // if (i == 1)for (int j = 0; j < N; ++j)schubfach_xjb_f64_to_dec(data[j], &dec_p[j], &e10_p[j]);
     // if (i == 2)for (int j = 0; j < N; ++j)dragonbox_f64_to_dec(data[j], &dec_p[j], &e10_p[j]);
     // if (i == 3)for (int j = 0; j < N; ++j)ryu_f64_to_dec(data[j], &dec_p[j], &e10_p[j]);
@@ -240,7 +248,7 @@ void bench_float_single_impl(int i)
         (void)d;
         (void)e;
     }
-    printf("cost %4.4lf ms,every float cost %2.4lf ns\n", (t2 - t1) / 1e6, (t2 - t1) * (1.0/ N));
+    printf("cost %4.4lf ms,every float cost %2.4lf ns,sum=%u\n", (t2 - t1) / 1e6, (t2 - t1) * (1.0/ N),sum);
 }
 
 void bench_double_all_algorithm()
@@ -267,8 +275,8 @@ unsigned check_xjb_and_schubfach_xjb(double d)
     unsigned long long dec,dec_xjb;
     int e10,e10_xjb;
     schubfach_xjb_f64_to_dec(d,&dec,&e10);
-    schubfach_f64_to_dec(d,&dec_xjb,&e10_xjb);
-    //xjb_f64_to_dec(d,&dec_xjb,&e10_xjb);
+    //schubfach_f64_to_dec(d,&dec_xjb,&e10_xjb);
+    xjb64_f64_to_dec(d,&dec_xjb,&e10_xjb);
     if(!(dec==dec_xjb&&e10==e10_xjb)){
         return 1;
     }

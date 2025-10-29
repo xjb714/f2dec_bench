@@ -22,6 +22,14 @@ c2:#clang without AVX512 and AVX2, generate normal code on x86-64 AMD zen4
 	clang++ -O3  -march=native main.cpp -mno-avx512f -mno-avx2 -DBENCH_DOUBLE=$(BENCH_DOUBLE) -o main_clang
 	./main_clang
 
+c2s:#clang without AVX512 and AVX2, generate normal code on x86-64 AMD zen4, save assembly
+	clang++ -O3  -march=native main.cpp -mno-avx512f -mno-avx2 -DBENCH_DOUBLE=$(BENCH_DOUBLE) -S -o main_clang.s
+
+gs:#gcc without AVX512 and AVX2
+	g++ -O3  -march=native main.cpp -DBENCH_DOUBLE=$(BENCH_DOUBLE) -S -o main_gcc.s
+
+is:#icpx without AVX512 and AVX2
+	icpx -O3  -march=native main.cpp -DBENCH_DOUBLE=$(BENCH_DOUBLE) -S -o main_icpx.s
 #apple M1 : please use " make c "
 
 #all compilers

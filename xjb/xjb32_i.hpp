@@ -1,5 +1,5 @@
-#include "xjb32.cpp"
-
+//#include "xjb32.cpp"
+#include <stdint.h>
 static inline void xjb_f32_to_dec(float v,unsigned int* dec,int *e10)
 {
     typedef uint64_t u64;
