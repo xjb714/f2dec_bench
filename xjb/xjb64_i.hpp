@@ -1,4 +1,3 @@
-//#include "xjb64.cpp"
 #include <stdint.h>
 static uint64_t bitarray_irregular[32] = {
     0x0000000000010040, 0x0000000000000004, 0x0000000000000000, 0x0020090000000000, 
@@ -12,13 +11,11 @@ static uint64_t bitarray_irregular[32] = {
 static inline void xjb64_f64_to_dec(double v,unsigned long long* dec,int *e10)
 {
     // next line need to proof correctness
-    // u64 one = ((dot_one * (u128)10 + ((dot_one == (u64)1 << 62) ? 0 : ((1ull<<63) + 4)) ) >> 64) ;
+    // u64 one = ((dot_one * (u128)10 + ((dot_one == (u64)1 << 62) ? 0 : ((1ull<<63) + 6)) ) >> 64) ;
 
     unsigned long long vi = *(unsigned  long long*)&v;
     unsigned long long sig = vi & ((1ull<<52) - 1);
     unsigned long long exp = (vi>>52) & 2047;
-
-    //xjb64_v2(sig,exp,(uint64_t*)dec,e10) ;
 
     typedef __uint128_t u128;
     typedef uint64_t u64;
@@ -677,7 +674,7 @@ static inline void xjb64_f64_to_dec(double v,unsigned long long* dec,int *e10)
         //u64 one = ((dot_one * (u128)10) >> 64)  + ( (u64)(dot_one * (u128)10) >= 0x7ffffffffffffffaull) - (dot_one == (u64)1 << 62) ;
         //u64 one = ((dot_one * (u128)10 + (1ull<<63) + 4) >> 64) - (dot_one == (u64)1 << 62) ;
 #ifdef __amd64__
-        u64 offset_num = (dot_one == (1ull << 62)) ? 0 : (1ull<<63) + 5 ;
+        u64 offset_num = (dot_one == (1ull << 62)) ? 0 : (1ull<<63) + 6 ;
         u64 one = (dot_one * (u128)10 + offset_num ) >> 64 ;
         if(regular) [[likely]]
         {
@@ -695,8 +692,8 @@ static inline void xjb64_f64_to_dec(double v,unsigned long long* dec,int *e10)
         //one = (half_ulp  > ~0 - dot_one) ? 10 : one;
         one = (half_ulp + dot_one < half_ulp ) ? 10 : one;
 #else
-        //u64 offset_num = ((bitarray_irregular[exp/64]>>(exp%64)) & !regular) ? ~0 : (1ull<<63) + 5 ;
-        u64 offset_num = (((bitarray_irregular[exp/64]>>(exp%64)) & !regular)<<62) + (1ull<<63) + 5 ;
+        //u64 offset_num = ((bitarray_irregular[exp/64]>>(exp%64)) & !regular) ? ~0 : (1ull<<63) + 6 ;
+        u64 offset_num = (((bitarray_irregular[exp/64]>>(exp%64)) & !regular)<<62) + (1ull<<63) + 6 ;
         offset_num = (dot_one == (1ull << 62)) ? 0 : offset_num ;
         u64 one = (dot_one * (u128)10 + offset_num ) >> 64 ;
         one = ((half_ulp >> !regular) > dot_one) ? 0 : one;

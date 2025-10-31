@@ -1,4 +1,3 @@
-//#include "xjb32.cpp"
 #include <stdint.h>
 static inline void xjb_f32_to_dec(float v,unsigned int* dec,int *e10)
 {
@@ -134,7 +133,7 @@ static inline void xjb_f32_to_dec(float v,unsigned int* dec,int *e10)
     one = ( ((half_ulp + even) >> !regular) > dot_one_36bit) ? 0 : one;
     one = (half_ulp + even > (((u64)1 << BIT) - 1) - dot_one_36bit) ? 10 : one;
     if(!regular)[[unlikely]]{
-        if( (exp_bin == 31 - 150) || (exp_bin == 214 - 150) || (exp_bin == 217 - 150) )
+        if( (exp_bin == 31 - 150) | (exp_bin == 214 - 150) | (exp_bin == 217 - 150) )
             one+=1;
     }
 #endif
