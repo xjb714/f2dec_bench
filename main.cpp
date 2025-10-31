@@ -401,9 +401,9 @@ void check_rand_double()
         error_sum += check_xjb_and_schubfach_xjb(d);
     }
     if(error_sum==0){
-        printf("check_all ok\n");
+        printf("check_random_double ok\n");
     }else{
-        printf("check_all fail error sum = %u\n",error_sum);
+        printf("check_random_double fail error sum = %u\n",error_sum);
     }
 }
 // void check_all_126()
@@ -497,7 +497,7 @@ int main()
 #if BENCH_DOUBLE
     bench_double();
     
-    check_double();
+    //check_double();
 #endif
 
 

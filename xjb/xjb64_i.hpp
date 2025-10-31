@@ -692,13 +692,16 @@ static inline void xjb64_f64_to_dec(double v,unsigned long long* dec,int *e10)
             //     one = (((dot_one >> 4) * 5) >> 59) + 1;
             one = (half_ulp / 2 > dot_one) ? 0 : one;
         }
-        one = (half_ulp  > ~0 - dot_one) ? 10 : one;
+        //one = (half_ulp  > ~0 - dot_one) ? 10 : one;
+        one = (half_ulp + dot_one < half_ulp ) ? 10 : one;
 #else
-        u64 offset_num = ((bitarray_irregular[exp/64]>>(exp%64)) & !regular) ? ~0 : (1ull<<63) + 5 ;
+        //u64 offset_num = ((bitarray_irregular[exp/64]>>(exp%64)) & !regular) ? ~0 : (1ull<<63) + 5 ;
+        u64 offset_num = (((bitarray_irregular[exp/64]>>(exp%64)) & !regular)<<62) + (1ull<<63) + 5 ;
         offset_num = (dot_one == (1ull << 62)) ? 0 : offset_num ;
         u64 one = (dot_one * (u128)10 + offset_num ) >> 64 ;
         one = ((half_ulp >> !regular) > dot_one) ? 0 : one;
-        one = (half_ulp + dot_one < half_ulp ) ? 10 : one;
+        one = (half_ulp  > ~0 - dot_one) ? 10 : one;
+        //one = (half_ulp + dot_one < half_ulp ) ? 10 : one;
 #endif
         *dec = ten + one;
         *e10 = k;
