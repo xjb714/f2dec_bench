@@ -6,7 +6,7 @@ static inline void xjb_f32_to_dec(float v,unsigned int* dec,int *e10)
     typedef uint32_t u32;
     unsigned int vi = *(unsigned int*)&v;
     unsigned int ieee_significand = vi & ((1u<<23) - 1);
-    unsigned int ieee_exponent = ((vi<<1) >> 23);
+    unsigned int ieee_exponent = ((vi >> 23) & 255);
     // size = 77*8 = 616 byte
     const u64 pow10_table[(44 - (-32) + 1)] = {
         0xcfb11ead453994bb, // -32
@@ -107,7 +107,7 @@ static inline void xjb_f32_to_dec(float v,unsigned int* dec,int *e10)
     int h = exp_bin + (((-1 - k) * 217707) >> 16); // [-4,-1]
     const u64 *pow10 = &pow10_table[32];
     u64 pow10_hi = pow10[(-1 - k)];
-    u64 even = 1 - (ieee_significand  & 1);
+    u64 even = ((ieee_significand + 1) & 1);
     const int BIT = 36; // [33,36] all right
     u64 cb = sig_bin << (h + 1 + BIT);
     u64 sig_hi = (cb * (__uint128_t)pow10_hi) >> 64; // one mulxq instruction on x86
@@ -116,6 +116,7 @@ static inline void xjb_f32_to_dec(float v,unsigned int* dec,int *e10)
     u64 half_ulp = pow10_hi >> ((64 - BIT) - h);
     u64 offset_num  = (((u64)1 << BIT) - 7) + (dot_one_36bit >> (BIT - 4));
     u64 one = (dot_one_36bit * 20 + offset_num) >> (BIT + 1);
+#ifdef __amd64__
     if (regular) [[likely]] // branch
     {
         one = (half_ulp + even > dot_one_36bit) ? 0 : one;
@@ -124,9 +125,17 @@ static inline void xjb_f32_to_dec(float v,unsigned int* dec,int *e10)
     else
     {
         one = (half_ulp / 2 > dot_one_36bit) ? 0 : one;
-        one += (exp_bin == 31 - 150) + (exp_bin == 214 - 150) + (exp_bin == 217 - 150);// more fast
+        one += (exp_bin == 31 - 150) | (exp_bin == 214 - 150) | (exp_bin == 217 - 150);// more fast
         one = (half_ulp > (((u64)1 << BIT) - 1) - dot_one_36bit) ? 10 : one;
     }
+#else //arm64
+    one = ( ((half_ulp + even) >> !regular) > dot_one_36bit) ? 0 : one;
+    one = (half_ulp + even > (((u64)1 << BIT) - 1) - dot_one_36bit) ? 10 : one;
+    if(!regular)[[unlikely]]{
+        if( (exp_bin == 31 - 150) || (exp_bin == 214 - 150) || (exp_bin == 217 - 150) )
+            one+=1;
+    }
+#endif
     *dec = ten + one;
     *e10 = k;
 }

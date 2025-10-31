@@ -137,11 +137,11 @@ void init_float()
     algorithm_float_set.clear();
 
 
+    algorithm_float_set.push_back({std::string("xjb32"), xjb_f32_to_dec});
     algorithm_float_set.push_back({std::string("schubfach32_xjb"), schubfach_xjb_f32_to_dec});
     algorithm_float_set.push_back({std::string("schubfach32"), schubfach_f32_to_dec});
     algorithm_float_set.push_back({std::string("ryu32"), ryu_f32_to_dec});
     algorithm_float_set.push_back({std::string("teju32"), teju_f32_to_dec});
-    algorithm_float_set.push_back({std::string("xjb32"), xjb_f32_to_dec});
 
 
     printf("init float algorithm set finish\n");
@@ -217,11 +217,11 @@ void bench_float_single_impl(int i)
     // so this method is not used.
     // for(int j=0;j<N;++j)func(data[j],&dec_p[j],&e10_p[j]);
 
-    if (i == 0)for (int j = 0; j < N; ++j)schubfach_xjb_f32_to_dec(data_float[j], &dec_p[j], &e10_p[j]);
-    if (i == 1)for (int j = 0; j < N; ++j)schubfach_f32_to_dec(data_float[j], &dec_p[j], &e10_p[j]);
-    if (i == 2)for (int j = 0; j < N; ++j)ryu_f32_to_dec(data_float[j], &dec_p[j], &e10_p[j]);
-    if (i == 3)for (int j = 0; j < N; ++j)teju_f32_to_dec(data_float[j], &dec_p[j], &e10_p[j]);
-    if (i == 4)for (int j = 0; j < N; ++j)xjb_f32_to_dec(data_float[j], &dec_p[j], &e10_p[j]);
+    if (i == 0)for (int j = 0; j < N; ++j)xjb_f32_to_dec(data_float[j], &dec_p[j], &e10_p[j]);
+    if (i == 1)for (int j = 0; j < N; ++j)schubfach_xjb_f32_to_dec(data_float[j], &dec_p[j], &e10_p[j]);
+    if (i == 2)for (int j = 0; j < N; ++j)schubfach_f32_to_dec(data_float[j], &dec_p[j], &e10_p[j]);
+    if (i == 3)for (int j = 0; j < N; ++j)ryu_f32_to_dec(data_float[j], &dec_p[j], &e10_p[j]);
+    if (i == 4)for (int j = 0; j < N; ++j)teju_f32_to_dec(data_float[j], &dec_p[j], &e10_p[j]);
     
     //for (int j = 0; j < N; ++j){xjb_f32_to_dec(data_float[j], &dec, &e10);sum+=dec;}
     //xjb_f32_to_dec(data_float, &dec, &e10, N, &sum); //sum += dec;
@@ -248,7 +248,7 @@ void bench_float_single_impl(int i)
         (void)d;
         (void)e;
     }
-    printf("cost %4.4lf ms,every float cost %2.4lf ns,sum=%u\n", (t2 - t1) / 1e6, (t2 - t1) * (1.0/ N),sum);
+    printf("cost %4.4lf ms,every float cost %2.4lf ns\n", (t2 - t1) / 1e6, (t2 - t1) * (1.0/ N));
 }
 
 void bench_double_all_algorithm()
@@ -282,6 +282,18 @@ unsigned check_xjb_and_schubfach_xjb(double d)
     }
     return 0;
 }
+unsigned check_xjb32_and_schubfach32_xjb(float f)
+{
+    unsigned int dec,dec_xjb;
+    int e10,e10_xjb;
+    schubfach_xjb_f32_to_dec(f,&dec,&e10);
+    xjb_f32_to_dec(f,&dec_xjb,&e10_xjb);
+    if((dec==dec_xjb&&e10==e10_xjb)){
+        return 0;
+    }
+    //printf("f = %.8le, dec=%u,e10=%d , dec_xjb=%u,e10_xjb=%d\n",f,dec,e10,dec_xjb,e10_xjb);
+    return 1;
+}
 // unsigned check_schubfach_xjb_126(double d)
 // {
 //     unsigned long long dec,dec_xjb;
@@ -313,12 +325,27 @@ void check_subnormal()
         printf("check_subnormal fail error sum = %u\n",error_sum);
     }
 }
+void check_all_float_number()
+{
+    printf("check xjb32 algorithm ; check all float number start\n");
+    unsigned error_sum = 0;
+    for(u32 i=0x00000001u;i<=0x7F7FFFFFu;++i)
+    {
+        float f = *(float*)&i;
+        error_sum += check_xjb32_and_schubfach32_xjb(f);
+    }
+    if(error_sum==0){
+        printf("check_all_float ok\n");
+    }else{
+        printf("check_all_float fail error sum = %u\n",error_sum);
+    }
+}
 void check_float()
 {
     // not contain subnormal float
     // because subnormal float convert to double , it will be 0.
     unsigned error_sum = 0;
-    for(u32 i=0x00800000u;i<=0x7F7FFFFFu;++i)
+    for(u32 i=0x00800000u;i<=0x7F7FFFFFu;++i) // 2**31 
     {
         float f = *(float*)&i;
         double d=f;// convert float to double 
@@ -338,14 +365,33 @@ void check_irregular()
         u64 num = exp << 52;
         double d = *(double*)&num;
         error_sum += check_xjb_and_schubfach_xjb(d);
+        if(check_xjb_and_schubfach_xjb(d)){//error
+            printf("%lu,",exp);
+        }
     }
     if(error_sum==0){
         printf("check_irregular ok\n");
     }else{
         printf("check_irregular fail error sum = %u\n",error_sum);
     }
+    // u64 bitarray[2048/64]={0};
+    // u64 q_num[26]={6,16,66,232,235,245,328,534,657,727,883,926,946,1112,1205,1298,1328,1368,1401,1421,1428,1504,1597,1617,1886,1999};
+    // for(unsigned i=0;i<26;++i){
+    //     //set_bit(bitarray,q_num[i]);
+    //     u64 value = q_num[i];
+    //     int arrayIndex = value / 64;      // 确定在哪个uint64_t中
+    //     int bitOffset = value % 64;       // 确定在uint64_t中的哪一位
+    //     bitarray[arrayIndex] |= (1ULL << bitOffset);
+    // }
+    // printf("static uint64_t bitarray[32] = {");
+    // for(unsigned i=0;i<32;++i){
+    //     printf("0x%016llx",bitarray[i]);
+    //     if(i!=31)printf(",");
+    //     else printf("};\n");
+    // }
+    
 }
-void check_all()
+void check_rand_double()
 {
     unsigned error_sum = 0;
     const unsigned long NUM = 1<<30;//1e9
@@ -376,14 +422,14 @@ void check_all()
 //     }
 // }
 
-void check()
+void check_double()
 {
     printf("\ncheck start , may cost long time , please wait\n");
-    printf("<=== check xjb algorithm ; use schubfach_xjb for correct result ===>\n");
+    printf("<=== check xjb64 algorithm ; use schubfach_xjb for correct result ===>\n");
     check_subnormal();
-    //check_float();// not contain subnormal float
+    check_float();// not contain subnormal float  , very slow
     check_irregular();
-    check_all();// random double 
+    check_rand_double();// random double 
     printf("check finish\n");
 }
 
@@ -444,12 +490,14 @@ int main()
 
 #if BENCH_FLOAT
     bench_float();
+
+    //check_all_float_number();
 #endif
 
 #if BENCH_DOUBLE
     bench_double();
     
-    check();
+    check_double();
 #endif
 
 
