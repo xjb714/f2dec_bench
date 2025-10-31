@@ -1,5 +1,5 @@
 
-BENCH_DOUBLE = 1 # 0 : float, 1 : double 
+BENCH_DOUBLE = 0 # 0 : float, 1 : double 
 
 # all:
 # 	icpx -O3 -march=native main.cpp -o main

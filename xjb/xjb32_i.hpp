@@ -114,9 +114,9 @@ static inline void xjb_f32_to_dec(float v,unsigned int* dec,int *e10)
     u64 ten = (sig_hi >> BIT) * 10;
     u64 dot_one_36bit = sig_hi & (((u64)1 << BIT) - 1); // only need high 36 bit
     u64 half_ulp = pow10_hi >> ((64 - BIT) - h);
+#ifdef __amd64__
     u64 offset_num  = (((u64)1 << BIT) - 7) + (dot_one_36bit >> (BIT - 4));
     u64 one = (dot_one_36bit * 20 + offset_num) >> (BIT + 1);
-#ifdef __amd64__
     if (regular) [[likely]] // branch
     {
         one = (half_ulp + even > dot_one_36bit) ? 0 : one;
@@ -129,6 +129,8 @@ static inline void xjb_f32_to_dec(float v,unsigned int* dec,int *e10)
         one = (half_ulp > (((u64)1 << BIT) - 1) - dot_one_36bit) ? 10 : one;
     }
 #else //arm64
+    u64 offset_num  = (((u64)1 << BIT) - 7) + ((sig_hi >> (BIT - 4)) & 0xF);
+    u64 one = (dot_one_36bit * 20 + offset_num) >> (BIT + 1);
     one = ( ((half_ulp + even) >> !regular) > dot_one_36bit) ? 0 : one;
     one = (half_ulp + even > (((u64)1 << BIT) - 1) - dot_one_36bit) ? 10 : one;
     if(!regular)[[unlikely]]{
