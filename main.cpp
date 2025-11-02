@@ -26,29 +26,24 @@
 #include "xjb/xjb32_i.hpp"
 
 
-const int N = 1e7;
+const int N = 1e7;//double data size
 const int N_float = 1e7; // float data size
-const int M = 9;//double algorithm count
-const int MF = 3;//float algorithm count
+//const int M = 9;//double algorithm count
+//const int MF = 3;//float algorithm count
 
 double *data;
 unsigned long long *dec;
 int *e10;
 // dec * 10^e10
 
-float *data_float;// all float data : [1 , ((0xff<<23)-1)]
+float *data_float;// all random float data range : [1 , ((0xff<<23)-1)]
 unsigned int *dec_float;
 int *e10_float;
 // dec_float * 10^e10_float
 
 
-// N=1e8 all memory size = 14e8 * 8 + 7e8 * 4 = 140e8 = 1.4e10 byte = 13.03GB
-// N=5e7 all memory size = 6.5GB
-// if size too large , please change N.
-
 std::vector<std::pair<std::string, void (*)(double, unsigned long long *, int *)>> algorithm_set;//double
 std::vector<std::pair<std::string, void (*)(float, unsigned int *, int *)>> algorithm_float_set;//float
-//std::vector<std::pair<std::string, void (*)(float*, unsigned int *, int *,unsigned int,unsigned int*)>> algorithm_float_set;//float
 
 std::random_device rd;
 std::mt19937_64 gen(rd());
@@ -66,7 +61,7 @@ unsigned long long getns()
     auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()).count();
     return nanos;
 }
-double gen_double_filter_Nan_Inf()
+double gen_double_filter_NaN_Inf()
 {
     unsigned long long rnd;
     do
@@ -87,7 +82,7 @@ void init_double()
     // #pragma omp parallel for
     for (int i = 0; i < (N); ++i)
     {
-        data[i] = gen_double_filter_Nan_Inf();
+        data[i] = gen_double_filter_NaN_Inf();
     }
     printf("generate random data finish\n");
 
@@ -96,14 +91,16 @@ void init_double()
 
     algorithm_set.clear();
 
-    algorithm_set.push_back({std::string("schubfach64"), schubfach_f64_to_dec});
-    algorithm_set.push_back({std::string("schubfach64_xjb"), schubfach_xjb_f64_to_dec});
-    algorithm_set.push_back({std::string("dragonbox"), dragonbox_f64_to_dec});
-    algorithm_set.push_back({std::string("ryu64"), ryu_f64_to_dec});
-    algorithm_set.push_back({std::string("teju"), teju_f64_to_dec});
-    algorithm_set.push_back({std::string("yy_fast"), yy_fast_f64_to_dec});
-    algorithm_set.push_back({std::string("yy_full"), yy_full_f64_to_dec});
-    algorithm_set.push_back({std::string("xjb64"), xjb64_f64_to_dec});
+    algorithm_set.push_back({std::string("schubfach64"), schubfach_f64_to_dec});//0
+    algorithm_set.push_back({std::string("schubfach64_xjb"), schubfach_xjb_f64_to_dec});//1
+    algorithm_set.push_back({std::string("dragonbox"), dragonbox_f64_to_dec});//2
+    algorithm_set.push_back({std::string("ryu64"), ryu_f64_to_dec});//3
+    algorithm_set.push_back({std::string("teju"), teju_f64_to_dec});//4
+    algorithm_set.push_back({std::string("yyjson"), yyjson_f64_to_dec});//5
+    algorithm_set.push_back({std::string("yy_double"), yy_double_f64_to_dec});//6
+    algorithm_set.push_back({std::string("yy_double_full"), yy_double_full_f64_to_dec});//7
+    algorithm_set.push_back({std::string("xjb64"), xjb64_f64_to_dec});//8
+    
     //algorithm_set.push_back({std::string("ldouble"), ldouble_f64_to_dec});
 
     auto t2 = getns();
@@ -142,6 +139,7 @@ void init_float()
     algorithm_float_set.push_back({std::string("schubfach32"), schubfach_f32_to_dec});
     algorithm_float_set.push_back({std::string("ryu32"), ryu_f32_to_dec});
     algorithm_float_set.push_back({std::string("teju32"), teju_f32_to_dec});
+    algorithm_float_set.push_back({std::string("yyjson32"), yyjson_f32_to_dec});
 
 
     printf("init float algorithm set finish\n");
@@ -169,7 +167,7 @@ void bench_double_single_impl(int i)
     void (*func)(double, unsigned long long *, int *) = algorithm_set[i].second;
     unsigned long long *dec_p = &dec[0];
     int *e10_p = &e10[0];
-    printf("%d. bench %14s : ", i, name.c_str());
+    printf("%d. bench %15s : ", i, name.c_str());
 
     auto t1 = getns();
 
@@ -183,10 +181,13 @@ void bench_double_single_impl(int i)
     if (i == 2)for (int j = 0; j < N; ++j)dragonbox_f64_to_dec(data[j], &dec_p[j], &e10_p[j]);
     if (i == 3)for (int j = 0; j < N; ++j)ryu_f64_to_dec(data[j], &dec_p[j], &e10_p[j]);
     if (i == 4)for (int j = 0; j < N; ++j)teju_f64_to_dec(data[j], &dec_p[j], &e10_p[j]);
-    if (i == 5)for (int j = 0; j < N; ++j)yy_fast_f64_to_dec(data[j], &dec_p[j], &e10_p[j]);
-    if (i == 6)for (int j = 0; j < N; ++j)yy_full_f64_to_dec(data[j], &dec_p[j], &e10_p[j]);
-    if (i == 7)for (int j = 0; j < N; ++j)xjb64_f64_to_dec(data[j], &dec_p[j], &e10_p[j]);
-    //if (i == 8)for (int j = 0; j < N; ++j)ldouble_f64_to_dec(data[j], &dec_p[j], &e10_p[j]);
+    if (i == 5)for (int j = 0; j < N; ++j)yyjson_f64_to_dec(data[j], &dec_p[j], &e10_p[j]);
+    if (i == 6)for (int j = 0; j < N; ++j)yy_double_f64_to_dec(data[j], &dec_p[j], &e10_p[j]);
+    if (i == 7)for (int j = 0; j < N; ++j)yy_double_full_f64_to_dec(data[j], &dec_p[j], &e10_p[j]);
+    if (i == 8)for (int j = 0; j < N; ++j)xjb64_f64_to_dec(data[j], &dec_p[j], &e10_p[j]);
+    
+    // not satisfy correctness : Steele & White algorithm
+    //if (i == 9)for (int j = 0; j < N; ++j)ldouble_f64_to_dec(data[j], &dec_p[j], &e10_p[j]);
 
     auto t2 = getns();
     for (int j = 0; j < N; ++j)
@@ -196,7 +197,7 @@ void bench_double_single_impl(int i)
         (void)d;
         (void)e;
     }
-    printf("cost %4.4lf ms,every double cost %2.4lf ns\n", (t2 - t1) / 1e6, (t2 - t1) * (1.0 / N));
+    printf("cost %5.4lf ms,every double cost %3.4lf ns\n", (t2 - t1) / 1e6, (t2 - t1) * (1.0 / N));
 }
 void bench_float_single_impl(int i)
 {
@@ -208,7 +209,7 @@ void bench_float_single_impl(int i)
     //void (*func)(float*, unsigned int *, int *) = algorithm_float_set[i].second;
     unsigned int *dec_p = &dec_float[0];
     int *e10_p = &e10_float[0];
-    printf("%d. bench %14s : ", i, name.c_str());
+    printf("%d. bench %15s : ", i, name.c_str());
 
     auto t1 = getns();
 
@@ -222,24 +223,8 @@ void bench_float_single_impl(int i)
     if (i == 2)for (int j = 0; j < N; ++j)schubfach_f32_to_dec(data_float[j], &dec_p[j], &e10_p[j]);
     if (i == 3)for (int j = 0; j < N; ++j)ryu_f32_to_dec(data_float[j], &dec_p[j], &e10_p[j]);
     if (i == 4)for (int j = 0; j < N; ++j)teju_f32_to_dec(data_float[j], &dec_p[j], &e10_p[j]);
+    if (i == 5)for (int j = 0; j < N; ++j)yyjson_f32_to_dec(data_float[j], &dec_p[j], &e10_p[j]);
     
-    //for (int j = 0; j < N; ++j){xjb_f32_to_dec(data_float[j], &dec, &e10);sum+=dec;}
-    //xjb_f32_to_dec(data_float, &dec, &e10, N, &sum); //sum += dec;
-    
-    // if (i == 0)for (int j = 0; j < N; ++j){xjb_f32_to_dec(data_float[j], &dec, &e10);sum+=dec;}//gcc not inline this function correctly
-    // if (i == 1)for (int j = 0; j < N; ++j){schubfach_xjb_f32_to_dec(data_float[j], &dec, &e10);sum+=dec;}
-    // if (i == 2)for (int j = 0; j < N; ++j){schubfach_f32_to_dec(data_float[j], &dec, &e10);sum+=dec;}
-    // if (i == 3)for (int j = 0; j < N; ++j){ryu_f32_to_dec(data_float[j], &dec, &e10);sum+=dec;}
-    // if (i == 4)for (int j = 0; j < N; ++j){teju_f32_to_dec(data_float[j], &dec, &e10);sum+=dec;}
-    // if (i == 1)for (int j = 0; j < N; ++j)schubfach_xjb_f64_to_dec(data[j], &dec_p[j], &e10_p[j]);
-    // if (i == 2)for (int j = 0; j < N; ++j)dragonbox_f64_to_dec(data[j], &dec_p[j], &e10_p[j]);
-    // if (i == 3)for (int j = 0; j < N; ++j)ryu_f64_to_dec(data[j], &dec_p[j], &e10_p[j]);
-    // if (i == 4)for (int j = 0; j < N; ++j)teju_f64_to_dec(data[j], &dec_p[j], &e10_p[j]);
-    // if (i == 5)for (int j = 0; j < N; ++j)yy_fast_f64_to_dec(data[j], &dec_p[j], &e10_p[j]);
-    // if (i == 6)for (int j = 0; j < N; ++j)yy_full_f64_to_dec(data[j], &dec_p[j], &e10_p[j]);
-    // if (i == 7)for (int j = 0; j < N; ++j)xjb_f64_to_dec(data[j], &dec_p[j], &e10_p[j]);
-    // if (i == 8)for (int j = 0; j < N; ++j)ldouble_f64_to_dec(data[j], &dec_p[j], &e10_p[j]);
-
     auto t2 = getns();
     for (int j = 0; j < N; ++j)
     {
@@ -248,7 +233,7 @@ void bench_float_single_impl(int i)
         (void)d;
         (void)e;
     }
-    printf("cost %4.4lf ms,every float cost %2.4lf ns\n", (t2 - t1) / 1e6, (t2 - t1) * (1.0/ N));
+    printf("cost %5.4lf ms,every float cost %3.4lf ns\n", (t2 - t1) / 1e6, (t2 - t1) * (1.0/ N));
 }
 
 void bench_double_all_algorithm()
@@ -272,15 +257,16 @@ void bench_float_all_algorithm()
 
 unsigned check_xjb_and_schubfach_xjb(double d)
 {
+    // use schubfach_xjb as reference implementation
     unsigned long long dec,dec_xjb;
     int e10,e10_xjb;
     schubfach_xjb_f64_to_dec(d,&dec,&e10);
-    //schubfach_f64_to_dec(d,&dec_xjb,&e10_xjb);
+    //schubfach_f64_to_dec(d,&dec_xjb,&e10_xjb); // schubfach_xjb and schubfach result always same
     xjb64_f64_to_dec(d,&dec_xjb,&e10_xjb);
-    if(!(dec==dec_xjb&&e10==e10_xjb)){
-        return 1;
+    if((dec==dec_xjb&&e10==e10_xjb)){
+        return 0;
     }
-    return 0;
+    return 1;
 }
 unsigned check_xjb32_and_schubfach32_xjb(float f)
 {
@@ -294,20 +280,6 @@ unsigned check_xjb32_and_schubfach32_xjb(float f)
     //printf("f = %.8le, dec=%u,e10=%d , dec_xjb=%u,e10_xjb=%d\n",f,dec,e10,dec_xjb,e10_xjb);
     return 1;
 }
-// unsigned check_schubfach_xjb_126(double d)
-// {
-//     unsigned long long dec,dec_xjb;
-//     int e10,e10_xjb;
-//     schubfach_xjb_f64_to_dec(d,&dec,&e10);
-//     schubfach_xjb_126_f64_to_dec(d,&dec_xjb,&e10_xjb);
-//     //xjb_f64_to_dec(d,&dec_xjb,&e10_xjb);
-//     if(!(dec==dec_xjb&&e10==e10_xjb)){
-//         static unsigned sum=0;
-//         printf("sum=%u,d = %.16le,e10=%d\n",sum++,d,e10);
-//         return 1;
-//     }
-//     return 0;
-// }
 
 void check_subnormal()
 {
@@ -366,7 +338,7 @@ void check_irregular()
         double d = *(double*)&num;
         error_sum += check_xjb_and_schubfach_xjb(d);
         if(check_xjb_and_schubfach_xjb(d)){//error
-            printf("%lu,",exp);
+            printf("%d,",(int)exp);
         }
     }
     if(error_sum==0){
@@ -374,6 +346,8 @@ void check_irregular()
     }else{
         printf("check_irregular fail error sum = %u\n",error_sum);
     }
+
+    // // print irregular exponent bit set
     // u64 bitarray[2048/64]={0};
     // u64 q_num[26]={6,16,66,232,235,245,328,534,657,727,883,926,946,1112,1205,1298,1328,1368,1401,1421,1428,1504,1597,1617,1886,1999};
     // for(unsigned i=0;i<26;++i){
@@ -397,7 +371,7 @@ void check_rand_double()
     const unsigned long NUM = 1<<30;//1e9
     for(unsigned long i=0;i<NUM;++i)
     {
-        double d = gen_double_filter_Nan_Inf();
+        double d = gen_double_filter_NaN_Inf();
         error_sum += check_xjb_and_schubfach_xjb(d);
     }
     if(error_sum==0){
@@ -406,21 +380,6 @@ void check_rand_double()
         printf("check_random_double fail error sum = %u\n",error_sum);
     }
 }
-// void check_all_126()
-// {
-//     unsigned error_sum=0;
-//     const unsigned long NUM = 1<<30;
-//     for(unsigned long i=0;i<NUM;++i)
-//     {
-//         double d = gen_double_filter_Nan_Inf();
-//         error_sum += check_schubfach_xjb_126(d);
-//     }
-//     if(error_sum==0){
-//         printf("check_all ok\n");
-//     }else{
-//         printf("check_all fail error sum = %u\n",error_sum);
-//     }
-// }
 
 void check_double()
 {
@@ -433,42 +392,6 @@ void check_double()
     printf("check finish\n");
 }
 
-// void check_ldouble(){
-//     while(1){
-//         double v;
-//         std::cin>>v;
-//         unsigned long long sig_dec;
-//         int exp_dec;
-//         ldouble_f64_to_dec(v,&sig_dec,&exp_dec);
-//         printf("ldouble v=%.16lg,sig=%llu,exp=%d\n",v,sig_dec,exp_dec);//max 16 digits
-
-//         schubfach_xjb_f64_to_dec(v,&sig_dec,&exp_dec);
-//         printf("sch_xjb v=%.16lg,sig=%llu,exp=%d\n",v,sig_dec,exp_dec);
-        
-//         //char buf[64];
-//         //jnum_dtoa(v,buf);
-//         //printf("buf = %s\n",buf);
-//     }
-// }
-// void check_schubfach_irregular()
-// {
-//     unsigned error_sum=0;
-//     for(u64 exp = 1; exp <= 2046;++exp)
-//     {
-//         u64 num = exp << 52;
-//         //num+=3;
-//         double d = *(double*)&num;
-//         unsigned long long dec,dec_xjb;
-//         int e10,e10_xjb;
-//         schubfach_f64_to_dec(d,&dec,&e10);
-//         //error_sum += check_xjb_and_schubfach_xjb(d);
-//     }
-//     // if(error_sum==0){
-//     //     printf("check_irregular ok\n");
-//     // }else{
-//     //     printf("check_irregular fail error sum = %u\n",error_sum);
-//     // }
-// }
 void bench_double()
 {
     init_double();
@@ -491,17 +414,14 @@ int main()
 #if BENCH_FLOAT
     bench_float();
 
-    //check_all_float_number();
+    //check_all_float_number(); // check all float number , may cost long time
 #endif
 
 #if BENCH_DOUBLE
     bench_double();
     
-    //check_double();
+    //check_double(); // check double correctness , may cost long time
 #endif
-
-
-    //printf("exit main\n");
 
     return 0;
 }
