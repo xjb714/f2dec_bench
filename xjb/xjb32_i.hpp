@@ -89,7 +89,7 @@ static inline void xjb_f32_to_dec(float v,unsigned int* dec,int *e10)
     };
     int exp_bin, k;
     u64 sig_bin, regular = ieee_significand > 0;
-    u64 irregular = (ieee_exponent == 0);
+    u64 irregular = (ieee_significand == 0);
     if (ieee_exponent > 0) [[likely]] // branch
     {
         exp_bin = ieee_exponent - 150; //-127-23
