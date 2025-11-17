@@ -21,7 +21,7 @@ void yy_double_f64_to_dec(double v,unsigned long long* dec,int *e10)
         exp_bin = -1074;
     }
 
-    yy_double_f64_bin_to_dec(sig_bin, exp_bin,(uint64_t*)dec,e10) ;
+    yy_double::yy_double_f64_bin_to_dec(sig_bin, exp_bin,(uint64_t*)dec,e10) ;
 }
 void yy_double_full_f64_to_dec(double v,unsigned long long* dec,int *e10)
 {
@@ -43,7 +43,7 @@ void yy_double_full_f64_to_dec(double v,unsigned long long* dec,int *e10)
         exp_bin = -1074;
     }
 
-    yy_double_full_f64_bin_to_dec(sig_bin, exp_bin,(uint64_t*)dec,e10) ;
+    yy_double::yy_double_full_f64_bin_to_dec(sig_bin, exp_bin,(uint64_t*)dec,e10) ;
 }
 
 void yyjson_f64_to_dec(double v,unsigned long long* dec,int *e10)
@@ -89,4 +89,22 @@ void yyjson_f32_to_dec(float v,unsigned int* dec,int *e10)
     }
 
     f32_bin_to_dec(sig, exp, sig_bin, exp_bin,(uint32_t*)dec,e10) ;
+}
+
+
+char* yy_double_f64_to_str(double v,char* buffer)
+{
+    return yy_double::yy_double_to_string(v,buffer);
+}
+
+char* yyjson_f64_to_str(double v,char* buffer)
+{
+    //src from yyjson.c
+    return (char*)write_f64_raw((u8*)buffer, *(u64*)&v , YYJSON_WRITE_NOFLAG);
+}
+
+char* yyjson_f32_to_str(float v,char* buffer)
+{
+    //src from yyjson.c
+    return (char*)write_f32_raw((u8*)buffer, *(u64*)&v , YYJSON_WRITE_NOFLAG);
 }

@@ -1729,10 +1729,10 @@ namespace xjb
     //
     //==================================================================================================
 
-    // char* schubfach_xjb::Dtoa(char* buffer, double value)
-    // {
-    //     char* end_buffer = ToChars(buffer, value, true);
-    //     return end_buffer;
-    // }
+    char* Dtoa(char* buffer, double value)
+    {
+        char* end_buffer = ToChars(buffer, value, true);
+        return end_buffer;
+    }
 
 }

@@ -23,3 +23,19 @@ void ryu_f32_to_dec(float v,unsigned int* dec,int *e10)
     *dec = res.mantissa;
     *e10 = res.exponent;
 }
+
+
+
+char* ryu_f64_to_str(double v,char* buffer)
+{
+    int len = d2s_buffered_n(v,buffer);
+    buffer[len] = '\0';
+    return buffer+len;
+}
+
+char* ryu_f32_to_str(double v,char* buffer)
+{
+    int len = f2s_buffered_n(v,buffer);
+    buffer[len] = '\0';
+    return buffer+len;
+}

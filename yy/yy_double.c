@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-
+namespace yy_double {
 
 /*==============================================================================
  * Compiler Macros
@@ -391,27 +391,27 @@ __extension__ typedef unsigned __int128 u128;
  * Load/Store Utils
  *============================================================================*/
 
-// static_inline void byte_copy_2(void *dst, const void *src) {
-//     memcpy(dst, src, 2);
-// }
+static_inline void byte_copy_2(void *dst, const void *src) {
+    memcpy(dst, src, 2);
+}
 
-// static_inline void byte_copy_4(void *dst, const void *src) {
-//     memcpy(dst, src, 4);
-// }
+static_inline void byte_copy_4(void *dst, const void *src) {
+    memcpy(dst, src, 4);
+}
 
-// static_inline void byte_copy_8(void *dst, const void *src) {
-//     memcpy(dst, src, 8);
-// }
+static_inline void byte_copy_8(void *dst, const void *src) {
+    memcpy(dst, src, 8);
+}
 
-// static_inline void byte_move_16(void *dst, const void *src) {
-//     char *pdst = (char *)dst;
-//     const char *psrc = (const char *)src;
-//     u64 tmp1, tmp2;
-//     memcpy(&tmp1, psrc, 8);
-//     memcpy(&tmp2, psrc + 8, 8);
-//     memcpy(pdst, &tmp1, 8);
-//     memcpy(pdst + 8, &tmp2, 8);
-// }
+static_inline void byte_move_16(void *dst, const void *src) {
+    char *pdst = (char *)dst;
+    const char *psrc = (const char *)src;
+    u64 tmp1, tmp2;
+    memcpy(&tmp1, psrc, 8);
+    memcpy(&tmp2, psrc + 8, 8);
+    memcpy(pdst, &tmp1, 8);
+    memcpy(pdst + 8, &tmp2, 8);
+}
 
 
 
@@ -427,11 +427,11 @@ __extension__ typedef unsigned __int128 u128;
 // }
 
 // /** Convert double to raw binary. */
-// static_inline u64 f64_to_raw(f64 f) {
-//     u64 u;
-//     memcpy(&u, &f, sizeof(u));
-//     return u;
-// }
+static_inline u64 f64_to_raw(f64 f) {
+    u64 u;
+    memcpy(&u, &f, sizeof(u));
+    return u;
+}
 
 
 
@@ -473,30 +473,30 @@ __extension__ typedef unsigned __int128 u128;
 // }
 
 // /** Returns the number of trailing 0-bits in value (input should not be 0). */
-// static_inline u32 u64_tz_bits(u64 v) {
-// #if GCC_HAS_CTZLL
-//     return (u32)__builtin_ctzll(v);
-// #elif MSC_HAS_BIT_SCAN_64
-//     unsigned long r;
-//     _BitScanForward64(&r, v);
-//     return (u32)r;
-// #elif MSC_HAS_BIT_SCAN
-//     unsigned long lo, hi;
-//     bool lo_set = _BitScanForward(&lo, (u32)(v)) != 0;
-//     _BitScanForward(&hi, (u32)(v >> 32));
-//     hi += 32;
-//     return lo_set ? lo : hi;
-// #else
-//     /* branchless, use de Bruijn sequences */
-//     const u8 table[64] = {
-//          0,  1,  2, 53,  3,  7, 54, 27,  4, 38, 41,  8, 34, 55, 48, 28,
-//         62,  5, 39, 46, 44, 42, 22,  9, 24, 35, 59, 56, 49, 18, 29, 11,
-//         63, 52,  6, 26, 37, 40, 33, 47, 61, 45, 43, 21, 23, 58, 17, 10,
-//         51, 25, 36, 32, 60, 20, 57, 16, 50, 31, 19, 15, 30, 14, 13, 12
-//     };
-//     return table[((v & (~v + 1)) * U64(0x022FDD63, 0xCC95386D)) >> 58];
-// #endif
-// }
+static_inline u32 u64_tz_bits(u64 v) {
+#if GCC_HAS_CTZLL
+    return (u32)__builtin_ctzll(v);
+#elif MSC_HAS_BIT_SCAN_64
+    unsigned long r;
+    _BitScanForward64(&r, v);
+    return (u32)r;
+#elif MSC_HAS_BIT_SCAN
+    unsigned long lo, hi;
+    bool lo_set = _BitScanForward(&lo, (u32)(v)) != 0;
+    _BitScanForward(&hi, (u32)(v >> 32));
+    hi += 32;
+    return lo_set ? lo : hi;
+#else
+    /* branchless, use de Bruijn sequences */
+    const u8 table[64] = {
+         0,  1,  2, 53,  3,  7, 54, 27,  4, 38, 41,  8, 34, 55, 48, 28,
+        62,  5, 39, 46, 44, 42, 22,  9, 24, 35, 59, 56, 49, 18, 29, 11,
+        63, 52,  6, 26, 37, 40, 33, 47, 61, 45, 43, 21, 23, 58, 17, 10,
+        51, 25, 36, 32, 60, 20, 57, 16, 50, 31, 19, 15, 30, 14, 13, 12
+    };
+    return table[((v & (~v + 1)) * U64(0x022FDD63, 0xCC95386D)) >> 58];
+#endif
+}
 
 
 
@@ -2203,93 +2203,93 @@ static_inline void yy_double_pow10_table_get_sig(i32 exp10, u64 *hi, u64 *lo) {
 //  * generate fewer and better instructions.
 //  *============================================================================*/
 
-// /** Digit table from 00 to 99. */
-// yy_align(2)
-// static const char digit_table[200] = {
-//     '0', '0', '0', '1', '0', '2', '0', '3', '0', '4',
-//     '0', '5', '0', '6', '0', '7', '0', '8', '0', '9',
-//     '1', '0', '1', '1', '1', '2', '1', '3', '1', '4',
-//     '1', '5', '1', '6', '1', '7', '1', '8', '1', '9',
-//     '2', '0', '2', '1', '2', '2', '2', '3', '2', '4',
-//     '2', '5', '2', '6', '2', '7', '2', '8', '2', '9',
-//     '3', '0', '3', '1', '3', '2', '3', '3', '3', '4',
-//     '3', '5', '3', '6', '3', '7', '3', '8', '3', '9',
-//     '4', '0', '4', '1', '4', '2', '4', '3', '4', '4',
-//     '4', '5', '4', '6', '4', '7', '4', '8', '4', '9',
-//     '5', '0', '5', '1', '5', '2', '5', '3', '5', '4',
-//     '5', '5', '5', '6', '5', '7', '5', '8', '5', '9',
-//     '6', '0', '6', '1', '6', '2', '6', '3', '6', '4',
-//     '6', '5', '6', '6', '6', '7', '6', '8', '6', '9',
-//     '7', '0', '7', '1', '7', '2', '7', '3', '7', '4',
-//     '7', '5', '7', '6', '7', '7', '7', '8', '7', '9',
-//     '8', '0', '8', '1', '8', '2', '8', '3', '8', '4',
-//     '8', '5', '8', '6', '8', '7', '8', '8', '8', '9',
-//     '9', '0', '9', '1', '9', '2', '9', '3', '9', '4',
-//     '9', '5', '9', '6', '9', '7', '9', '8', '9', '9'
-// };
+/** Digit table from 00 to 99. */
+yy_align(2)
+static const char digit_table[200] = {
+    '0', '0', '0', '1', '0', '2', '0', '3', '0', '4',
+    '0', '5', '0', '6', '0', '7', '0', '8', '0', '9',
+    '1', '0', '1', '1', '1', '2', '1', '3', '1', '4',
+    '1', '5', '1', '6', '1', '7', '1', '8', '1', '9',
+    '2', '0', '2', '1', '2', '2', '2', '3', '2', '4',
+    '2', '5', '2', '6', '2', '7', '2', '8', '2', '9',
+    '3', '0', '3', '1', '3', '2', '3', '3', '3', '4',
+    '3', '5', '3', '6', '3', '7', '3', '8', '3', '9',
+    '4', '0', '4', '1', '4', '2', '4', '3', '4', '4',
+    '4', '5', '4', '6', '4', '7', '4', '8', '4', '9',
+    '5', '0', '5', '1', '5', '2', '5', '3', '5', '4',
+    '5', '5', '5', '6', '5', '7', '5', '8', '5', '9',
+    '6', '0', '6', '1', '6', '2', '6', '3', '6', '4',
+    '6', '5', '6', '6', '6', '7', '6', '8', '6', '9',
+    '7', '0', '7', '1', '7', '2', '7', '3', '7', '4',
+    '7', '5', '7', '6', '7', '7', '7', '8', '7', '9',
+    '8', '0', '8', '1', '8', '2', '8', '3', '8', '4',
+    '8', '5', '8', '6', '8', '7', '8', '8', '8', '9',
+    '9', '0', '9', '1', '9', '2', '9', '3', '9', '4',
+    '9', '5', '9', '6', '9', '7', '9', '8', '9', '9'
+};
 
-// static_inline u8 *write_u32_len_8(u32 val, u8 *buf) {
-//     /* 8 digits: aabbccdd */
-//     u32 aa, bb, cc, dd, aabb, ccdd;
-//     aabb = (u32)(((u64)val * 109951163) >> 40); /* (val / 10000) */
-//     ccdd = val - aabb * 10000; /* (val % 10000) */
-//     aa = (aabb * 5243) >> 19; /* (aabb / 100) */
-//     cc = (ccdd * 5243) >> 19; /* (ccdd / 100) */
-//     bb = aabb - aa * 100; /* (aabb % 100) */
-//     dd = ccdd - cc * 100; /* (ccdd % 100) */
-//     byte_copy_2(buf + 0, digit_table + aa * 2);
-//     byte_copy_2(buf + 2, digit_table + bb * 2);
-//     byte_copy_2(buf + 4, digit_table + cc * 2);
-//     byte_copy_2(buf + 6, digit_table + dd * 2);
-//     return buf + 8;
-// }
+static_inline u8 *write_u32_len_8(u32 val, u8 *buf) {
+    /* 8 digits: aabbccdd */
+    u32 aa, bb, cc, dd, aabb, ccdd;
+    aabb = (u32)(((u64)val * 109951163) >> 40); /* (val / 10000) */
+    ccdd = val - aabb * 10000; /* (val % 10000) */
+    aa = (aabb * 5243) >> 19; /* (aabb / 100) */
+    cc = (ccdd * 5243) >> 19; /* (ccdd / 100) */
+    bb = aabb - aa * 100; /* (aabb % 100) */
+    dd = ccdd - cc * 100; /* (ccdd % 100) */
+    byte_copy_2(buf + 0, digit_table + aa * 2);
+    byte_copy_2(buf + 2, digit_table + bb * 2);
+    byte_copy_2(buf + 4, digit_table + cc * 2);
+    byte_copy_2(buf + 6, digit_table + dd * 2);
+    return buf + 8;
+}
 
-// static_inline u8 *write_u32_len_1_to_8(u32 val, u8 *buf) {
-//     u32 aa, bb, cc, dd, aabb, bbcc, ccdd, lz;
+static_inline u8 *write_u32_len_1_to_8(u32 val, u8 *buf) {
+    u32 aa, bb, cc, dd, aabb, bbcc, ccdd, lz;
     
-//     if (val < 100) { /* 1-2 digits: aa */
-//         lz = val < 10;
-//         byte_copy_2(buf + 0, digit_table + val * 2 + lz);
-//         buf -= lz;
-//         return buf + 2;
+    if (val < 100) { /* 1-2 digits: aa */
+        lz = val < 10;
+        byte_copy_2(buf + 0, digit_table + val * 2 + lz);
+        buf -= lz;
+        return buf + 2;
         
-//     } else if (val < 10000) { /* 3-4 digits: aabb */
-//         aa = (val * 5243) >> 19; /* (val / 100) */
-//         bb = val - aa * 100; /* (val % 100) */
-//         lz = aa < 10;
-//         byte_copy_2(buf + 0, digit_table + aa * 2 + lz);
-//         buf -= lz;
-//         byte_copy_2(buf + 2, digit_table + bb * 2);
-//         return buf + 4;
+    } else if (val < 10000) { /* 3-4 digits: aabb */
+        aa = (val * 5243) >> 19; /* (val / 100) */
+        bb = val - aa * 100; /* (val % 100) */
+        lz = aa < 10;
+        byte_copy_2(buf + 0, digit_table + aa * 2 + lz);
+        buf -= lz;
+        byte_copy_2(buf + 2, digit_table + bb * 2);
+        return buf + 4;
         
-//     } else if (val < 1000000) { /* 5-6 digits: aabbcc */
-//         aa = (u32)(((u64)val * 429497) >> 32); /* (val / 10000) */
-//         bbcc = val - aa * 10000; /* (val % 10000) */
-//         bb = (bbcc * 5243) >> 19; /* (bbcc / 100) */
-//         cc = bbcc - bb * 100; /* (bbcc % 100) */
-//         lz = aa < 10;
-//         byte_copy_2(buf + 0, digit_table + aa * 2 + lz);
-//         buf -= lz;
-//         byte_copy_2(buf + 2, digit_table + bb * 2);
-//         byte_copy_2(buf + 4, digit_table + cc * 2);
-//         return buf + 6;
+    } else if (val < 1000000) { /* 5-6 digits: aabbcc */
+        aa = (u32)(((u64)val * 429497) >> 32); /* (val / 10000) */
+        bbcc = val - aa * 10000; /* (val % 10000) */
+        bb = (bbcc * 5243) >> 19; /* (bbcc / 100) */
+        cc = bbcc - bb * 100; /* (bbcc % 100) */
+        lz = aa < 10;
+        byte_copy_2(buf + 0, digit_table + aa * 2 + lz);
+        buf -= lz;
+        byte_copy_2(buf + 2, digit_table + bb * 2);
+        byte_copy_2(buf + 4, digit_table + cc * 2);
+        return buf + 6;
         
-//     } else { /* 7-8 digits: aabbccdd */
-//         aabb = (u32)(((u64)val * 109951163) >> 40); /* (val / 10000) */
-//         ccdd = val - aabb * 10000; /* (val % 10000) */
-//         aa = (aabb * 5243) >> 19; /* (aabb / 100) */
-//         cc = (ccdd * 5243) >> 19; /* (ccdd / 100) */
-//         bb = aabb - aa * 100; /* (aabb % 100) */
-//         dd = ccdd - cc * 100; /* (ccdd % 100) */
-//         lz = aa < 10;
-//         byte_copy_2(buf + 0, digit_table + aa * 2 + lz);
-//         buf -= lz;
-//         byte_copy_2(buf + 2, digit_table + bb * 2);
-//         byte_copy_2(buf + 4, digit_table + cc * 2);
-//         byte_copy_2(buf + 6, digit_table + dd * 2);
-//         return buf + 8;
-//     }
-// }
+    } else { /* 7-8 digits: aabbccdd */
+        aabb = (u32)(((u64)val * 109951163) >> 40); /* (val / 10000) */
+        ccdd = val - aabb * 10000; /* (val % 10000) */
+        aa = (aabb * 5243) >> 19; /* (aabb / 100) */
+        cc = (ccdd * 5243) >> 19; /* (ccdd / 100) */
+        bb = aabb - aa * 100; /* (aabb % 100) */
+        dd = ccdd - cc * 100; /* (ccdd % 100) */
+        lz = aa < 10;
+        byte_copy_2(buf + 0, digit_table + aa * 2 + lz);
+        buf -= lz;
+        byte_copy_2(buf + 2, digit_table + bb * 2);
+        byte_copy_2(buf + 4, digit_table + cc * 2);
+        byte_copy_2(buf + 6, digit_table + dd * 2);
+        return buf + 8;
+    }
+}
 
 
 
@@ -2297,152 +2297,152 @@ static_inline void yy_double_pow10_table_get_sig(i32 exp10, u64 *hi, u64 *lo) {
 //  * Number Writer
 //  *============================================================================*/
 
-// /** Trailing zero count table for number 0 to 99.
-//     (generate with misc/make_tables.c) */
-// static const u8 dec_tz_table[] = {
-//     2, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-//     1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-//     1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-//     1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-//     1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-//     1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-//     1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-//     1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-//     1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-//     1, 0, 0, 0, 0, 0, 0, 0, 0, 0
-// };
+/** Trailing zero count table for number 0 to 99.
+    (generate with misc/make_tables.c) */
+static const u8 dec_tz_table[] = {
+    2, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0
+};
 
-// /** Write an unsigned integer with a length of 1 to 16. */
-// static_inline u8 *write_u64_len_1_to_16(u64 val, u8 *buf) {
-//     u64 hgh;
-//     u32 low;
-//     if (val < 100000000) { /* 1-8 digits */
-//         buf = write_u32_len_1_to_8((u32)val, buf);
-//         return buf;
-//     } else { /* 9-16 digits */
-//         hgh = val / 100000000;
-//         low = (u32)(val - hgh * 100000000); /* (val % 100000000) */
-//         buf = write_u32_len_1_to_8((u32)hgh, buf);
-//         buf = write_u32_len_8(low, buf);
-//         return buf;
-//     }
-// }
+/** Write an unsigned integer with a length of 1 to 16. */
+static_inline u8 *write_u64_len_1_to_16(u64 val, u8 *buf) {
+    u64 hgh;
+    u32 low;
+    if (val < 100000000) { /* 1-8 digits */
+        buf = write_u32_len_1_to_8((u32)val, buf);
+        return buf;
+    } else { /* 9-16 digits */
+        hgh = val / 100000000;
+        low = (u32)(val - hgh * 100000000); /* (val % 100000000) */
+        buf = write_u32_len_1_to_8((u32)hgh, buf);
+        buf = write_u32_len_8(low, buf);
+        return buf;
+    }
+}
 
-// /** Write an unsigned integer with a length of 1 to 17. */
-// static_inline u8 *write_u64_len_1_to_17(u64 val, u8 *buf) {
-//     u64 hgh;
-//     u32 mid, low, one;
-//     if (val >= (u64)100000000 * 10000000) { /* len: 16 to 17 */
-//         hgh = val / 100000000;
-//         low = (u32)(val - hgh * 100000000); /* (val % 100000000) */
-//         one = (u32)(hgh / 100000000);
-//         mid = (u32)(hgh - (u64)one * 100000000); /* (hgh % 100000000) */
-//         *buf = (u8)one + (u8)'0';
-//         buf += one > 0;
-//         buf = write_u32_len_8(mid, buf);
-//         buf = write_u32_len_8(low, buf);
-//         return buf;
-//     } else if (val >= (u64)100000000){ /* len: 9 to 15 */
-//         hgh = val / 100000000;
-//         low = (u32)(val - hgh * 100000000); /* (val % 100000000) */
-//         buf = write_u32_len_1_to_8((u32)hgh, buf);
-//         buf = write_u32_len_8(low, buf);
-//         return buf;
-//     } else { /* len: 1 to 8 */
-//         buf = write_u32_len_1_to_8((u32)val, buf);
-//         return buf;
-//     }
-// }
+/** Write an unsigned integer with a length of 1 to 17. */
+static_inline u8 *write_u64_len_1_to_17(u64 val, u8 *buf) {
+    u64 hgh;
+    u32 mid, low, one;
+    if (val >= (u64)100000000 * 10000000) { /* len: 16 to 17 */
+        hgh = val / 100000000;
+        low = (u32)(val - hgh * 100000000); /* (val % 100000000) */
+        one = (u32)(hgh / 100000000);
+        mid = (u32)(hgh - (u64)one * 100000000); /* (hgh % 100000000) */
+        *buf = (u8)one + (u8)'0';
+        buf += one > 0;
+        buf = write_u32_len_8(mid, buf);
+        buf = write_u32_len_8(low, buf);
+        return buf;
+    } else if (val >= (u64)100000000){ /* len: 9 to 15 */
+        hgh = val / 100000000;
+        low = (u32)(val - hgh * 100000000); /* (val % 100000000) */
+        buf = write_u32_len_1_to_8((u32)hgh, buf);
+        buf = write_u32_len_8(low, buf);
+        return buf;
+    } else { /* len: 1 to 8 */
+        buf = write_u32_len_1_to_8((u32)val, buf);
+        return buf;
+    }
+}
 
-// /**
-//  Write an unsigned integer with a length of 16 or 17 with trailing zero trimmed.
-//  These digits are named as "abbccddeeffgghhii" here.
-//  For example, input 1234567890123000, output "1234567890123".
-//  */
-// static_inline u8 *write_u64_len_16_to_17_trim(u64 val, u8 *buf) {
-//     u32 tz, tz1, tz2;
+/**
+ Write an unsigned integer with a length of 16 or 17 with trailing zero trimmed.
+ These digits are named as "abbccddeeffgghhii" here.
+ For example, input 1234567890123000, output "1234567890123".
+ */
+static_inline u8 *write_u64_len_16_to_17_trim(u64 val, u8 *buf) {
+    u32 tz, tz1, tz2;
     
-//     u32 abbccddee = (u32)(val / 100000000);
-//     u32 ffgghhii = (u32)(val - (u64)abbccddee * 100000000);
-//     u32 abbcc = abbccddee / 10000;
-//     u32 ddee = abbccddee - abbcc * 10000;
-//     u32 abb = (u32)(((u64)abbcc * 167773) >> 24);   /* (abbcc / 100) */
-//     u32 a = (abb * 41) >> 12;                       /* (abb / 100) */
-//     u32 bb = abb - a * 100;                         /* (abb % 100) */
-//     u32 cc = abbcc - abb * 100;                     /* (abbcc % 100) */
-//     buf[0] = (u8)(a + '0');
-//     buf += a > 0;
-//     byte_copy_2(buf + 0, digit_table + bb * 2);
-//     byte_copy_2(buf + 2, digit_table + cc * 2);
+    u32 abbccddee = (u32)(val / 100000000);
+    u32 ffgghhii = (u32)(val - (u64)abbccddee * 100000000);
+    u32 abbcc = abbccddee / 10000;
+    u32 ddee = abbccddee - abbcc * 10000;
+    u32 abb = (u32)(((u64)abbcc * 167773) >> 24);   /* (abbcc / 100) */
+    u32 a = (abb * 41) >> 12;                       /* (abb / 100) */
+    u32 bb = abb - a * 100;                         /* (abb % 100) */
+    u32 cc = abbcc - abb * 100;                     /* (abbcc % 100) */
+    buf[0] = (u8)(a + '0');
+    buf += a > 0;
+    byte_copy_2(buf + 0, digit_table + bb * 2);
+    byte_copy_2(buf + 2, digit_table + cc * 2);
     
-//     if (ffgghhii) {
-//         u32 dd = (ddee * 5243) >> 19;               /* (ddee / 100) */
-//         u32 ee = ddee - dd * 100;                   /* (ddee % 100) */
-//         u32 ffgg = (u32)(((u64)ffgghhii * 109951163) >> 40); /* (val / 10000) */
-//         u32 hhii = ffgghhii - ffgg * 10000;         /* (val % 10000) */
-//         u32 ff = (ffgg * 5243) >> 19;               /* (aabb / 100) */
-//         u32 gg = ffgg - ff * 100;                   /* (aabb % 100) */
-//         byte_copy_2(buf + 4, digit_table + dd * 2);
-//         byte_copy_2(buf + 6, digit_table + ee * 2);
-//         byte_copy_2(buf + 8, digit_table + ff * 2);
-//         byte_copy_2(buf + 10, digit_table + gg * 2);
-//         if (hhii) {
-//             u32 hh = (hhii * 5243) >> 19;           /* (ccdd / 100) */
-//             u32 ii = hhii - hh * 100;               /* (ccdd % 100) */
-//             byte_copy_2(buf + 12, digit_table + hh * 2);
-//             byte_copy_2(buf + 14, digit_table + ii * 2);
-//             tz1 = dec_tz_table[hh];
-//             tz2 = dec_tz_table[ii];
-//             gcc_load_barrier(tz2); /* let gcc emit cmov */
-//             tz = tz2 + (ii ? 0 : tz1);
-//             return buf + 16 - tz;
-//         } else {
-//             tz1 = dec_tz_table[ff];
-//             tz2 = dec_tz_table[gg];
-//             gcc_load_barrier(tz2); /* let gcc emit cmov */
-//             tz = tz2 + (gg ? 0 : tz1);
-//             return buf + 12 - tz;
-//         }
-//     } else {
-//         if (ddee) {
-//             u32 dd = (ddee * 5243) >> 19;           /* (ddee / 100) */
-//             u32 ee = ddee - dd * 100;               /* (ddee % 100) */
-//             byte_copy_2(buf + 4, digit_table + dd * 2);
-//             byte_copy_2(buf + 6, digit_table + ee * 2);
-//             tz1 = dec_tz_table[dd];
-//             tz2 = dec_tz_table[ee];
-//             gcc_load_barrier(tz2); /* let gcc emit cmov */
-//             tz = tz2 + (ee ? 0 : tz1);
-//             return buf + 8 - tz;
-//         } else {
-//             tz1 = dec_tz_table[bb];
-//             tz2 = dec_tz_table[cc];
-//             gcc_load_barrier(tz2); /* let gcc emit cmov */
-//             tz = tz2 + (cc ? 0 : tz1);
-//             return buf + 4 - tz;
-//         }
-//     }
-// }
+    if (ffgghhii) {
+        u32 dd = (ddee * 5243) >> 19;               /* (ddee / 100) */
+        u32 ee = ddee - dd * 100;                   /* (ddee % 100) */
+        u32 ffgg = (u32)(((u64)ffgghhii * 109951163) >> 40); /* (val / 10000) */
+        u32 hhii = ffgghhii - ffgg * 10000;         /* (val % 10000) */
+        u32 ff = (ffgg * 5243) >> 19;               /* (aabb / 100) */
+        u32 gg = ffgg - ff * 100;                   /* (aabb % 100) */
+        byte_copy_2(buf + 4, digit_table + dd * 2);
+        byte_copy_2(buf + 6, digit_table + ee * 2);
+        byte_copy_2(buf + 8, digit_table + ff * 2);
+        byte_copy_2(buf + 10, digit_table + gg * 2);
+        if (hhii) {
+            u32 hh = (hhii * 5243) >> 19;           /* (ccdd / 100) */
+            u32 ii = hhii - hh * 100;               /* (ccdd % 100) */
+            byte_copy_2(buf + 12, digit_table + hh * 2);
+            byte_copy_2(buf + 14, digit_table + ii * 2);
+            tz1 = dec_tz_table[hh];
+            tz2 = dec_tz_table[ii];
+            gcc_load_barrier(tz2); /* let gcc emit cmov */
+            tz = tz2 + (ii ? 0 : tz1);
+            return buf + 16 - tz;
+        } else {
+            tz1 = dec_tz_table[ff];
+            tz2 = dec_tz_table[gg];
+            gcc_load_barrier(tz2); /* let gcc emit cmov */
+            tz = tz2 + (gg ? 0 : tz1);
+            return buf + 12 - tz;
+        }
+    } else {
+        if (ddee) {
+            u32 dd = (ddee * 5243) >> 19;           /* (ddee / 100) */
+            u32 ee = ddee - dd * 100;               /* (ddee % 100) */
+            byte_copy_2(buf + 4, digit_table + dd * 2);
+            byte_copy_2(buf + 6, digit_table + ee * 2);
+            tz1 = dec_tz_table[dd];
+            tz2 = dec_tz_table[ee];
+            gcc_load_barrier(tz2); /* let gcc emit cmov */
+            tz = tz2 + (ee ? 0 : tz1);
+            return buf + 8 - tz;
+        } else {
+            tz1 = dec_tz_table[bb];
+            tz2 = dec_tz_table[cc];
+            gcc_load_barrier(tz2); /* let gcc emit cmov */
+            tz = tz2 + (cc ? 0 : tz1);
+            return buf + 4 - tz;
+        }
+    }
+}
 
-// /** Write exponent part in the range `e-324` to `e308`. */
-// static_inline u8 *write_f64_exp(i32 exp, u8 *buf) {
-//     u32 neg, lz, a, bb;
+/** Write exponent part in the range `e-324` to `e308`. */
+static_inline u8 *write_f64_exp(i32 exp, u8 *buf) {
+    u32 neg, lz, a, bb;
     
-//     /* write the exponent notation and sign */
-//     neg = exp < 0;
-//     exp = neg ? -exp : exp;
-//     byte_copy_2(buf, "e-");
-//     buf += 1 + neg;
+    /* write the exponent notation and sign */
+    neg = exp < 0;
+    exp = neg ? -exp : exp;
+    byte_copy_2(buf, "e-");
+    buf += 1 + neg;
     
-//     /* write the exponent value */
-//     a = ((u32)exp * 656) >> 16; /* exp / 100 */
-//     bb = (u32)exp - a * 100;    /* exp % 100 */
-//     buf[0] = (u8)((u8)a + (u8)'0');
-//     buf += a > 0;
-//     lz = exp < 10;
-//     byte_copy_2(buf, digit_table + bb * 2 + lz);
-//     return buf + 2 - lz;
-// }
+    /* write the exponent value */
+    a = ((u32)exp * 656) >> 16; /* exp / 100 */
+    bb = (u32)exp - a * 100;    /* exp % 100 */
+    buf[0] = (u8)((u8)a + (u8)'0');
+    buf += a > 0;
+    lz = exp < 10;
+    byte_copy_2(buf, digit_table + bb * 2 + lz);
+    return buf + 2 - lz;
+}
 
 /**
  Convert double number from binary to decimal.
@@ -2691,129 +2691,131 @@ static_inline void yy_double_full_f64_bin_to_dec(u64 sig_bin, i32 exp_bin,
 //  2. Keep decimal point to indicate the number is floating point.
 //  3. Remove positive sign of exponent part.
 // */
-// static_inline u8 *write_f64_raw(u8 *buf, u64 raw) {
-//     u64 sig_bin, sig_dec, sig_raw;
-//     i32 exp_bin, exp_dec, exp_raw, sig_len, dot_ofs;
-//     u8 *end;
+static_inline u8 *write_f64_raw(u8 *buf, u64 raw) {
+    u64 sig_bin, sig_dec, sig_raw;
+    i32 exp_bin, exp_dec, exp_raw, sig_len, dot_ofs;
+    u8 *end;
     
-//     /* decode raw bytes from IEEE-754 double format. */
-//     sig_raw = raw & F64_SIG_MASK;
-//     exp_raw = (u32)((raw & F64_EXP_MASK) >> F64_SIG_BITS);
+    /* decode raw bytes from IEEE-754 double format. */
+    sig_raw = raw & F64_SIG_MASK;
+    exp_raw = (u32)((raw & F64_EXP_MASK) >> F64_SIG_BITS);
     
-//     /* return inf or nan */
-//     if (unlikely(exp_raw == ((u32)1 << F64_EXP_BITS) - 1)) {
-//         if (sig_raw == 0) {
-//             buf[0] = '-';
-//             buf += (raw >> (F64_BITS - 1));
-//             byte_copy_8(buf, "Infinity");
-//             return buf + 8;
-//         } else {
-//             byte_copy_4(buf, "NaN");
-//             return buf + 3;
-//         }
-//     }
+    /* return inf or nan */
+    if (unlikely(exp_raw == ((u32)1 << F64_EXP_BITS) - 1)) {
+        if (sig_raw == 0) {
+            buf[0] = '-';
+            buf += (raw >> (F64_BITS - 1));
+            byte_copy_8(buf, "Infinity");
+            return buf + 8;
+        } else {
+            byte_copy_4(buf, "NaN");
+            return buf + 3;
+        }
+    }
     
-//     /* add sign for all finite number */
-//     buf[0] = '-';
-//     buf += (raw >> (F64_BITS - 1));;
+    /* add sign for all finite number */
+    buf[0] = '-';
+    buf += (raw >> (F64_BITS - 1));;
     
-//     /* return zero */
-//     if (unlikely((raw << 1) == 0)) {
-//         byte_copy_4(buf, "0.0");
-//         return buf + 3;
-//     }
+    /* return zero */
+    if (unlikely((raw << 1) == 0)) {
+        byte_copy_4(buf, "0.0");
+        return buf + 3;
+    }
     
-//     if (likely(exp_raw != 0)) {
-//         /* normal number */
-//         sig_bin = sig_raw | ((u64)1 << F64_SIG_BITS);
-//         exp_bin = (i32)exp_raw - F64_EXP_BIAS - F64_SIG_BITS;
+    if (likely(exp_raw != 0)) {
+        /* normal number */
+        sig_bin = sig_raw | ((u64)1 << F64_SIG_BITS);
+        exp_bin = (i32)exp_raw - F64_EXP_BIAS - F64_SIG_BITS;
         
-//         /* fast path for small integer number without fraction */
-//         if ((-F64_SIG_BITS <= exp_bin && exp_bin <= 0) &&
-//             (u64_tz_bits(sig_bin) >= (u32)-exp_bin)) {
-//             sig_dec = sig_bin >> -exp_bin; /* range: [1, 0x1FFFFFFFFFFFFF] */
-//             buf = write_u64_len_1_to_16(sig_dec, buf);
-//             byte_copy_2(buf, ".0");
-//             return buf + 2;
-//         }
+        /* fast path for small integer number without fraction */
+        if ((-F64_SIG_BITS <= exp_bin && exp_bin <= 0) &&
+            (u64_tz_bits(sig_bin) >= (u32)-exp_bin)) {
+            sig_dec = sig_bin >> -exp_bin; /* range: [1, 0x1FFFFFFFFFFFFF] */
+            buf = write_u64_len_1_to_16(sig_dec, buf);
+            byte_copy_2(buf, ".0");
+            return buf + 2;
+        }
         
-//         /* binary to decimal */
-//         f64_bin_to_dec(sig_bin, exp_bin, &sig_dec, &exp_dec);
+        /* binary to decimal */
+        yy_double_f64_bin_to_dec(sig_bin, exp_bin, &sig_dec, &exp_dec);
         
-//         /* the significand length is 16 or 17 */
-//         sig_len = 16 + (sig_dec >= (u64)100000000 * 100000000);
+        /* the significand length is 16 or 17 */
+        sig_len = 16 + (sig_dec >= (u64)100000000 * 100000000);
         
-//         /* the decimal point offset relative to the first digit */
-//         dot_ofs = sig_len + exp_dec;
+        /* the decimal point offset relative to the first digit */
+        dot_ofs = sig_len + exp_dec;
         
-//         if (likely(-6 < dot_ofs && dot_ofs <= 21)) {
-//             /* write without scientific notation, e.g. 0.001234, 123400.0 */
-//             i32 no_pre_zero, pre_ofs, num_sep_pos, dot_set_pos;
-//             u8 *num_hdr, *num_end, *num_sep, *dot_end;
+        if (likely(-6 < dot_ofs && dot_ofs <= 21)) {
+            /* write without scientific notation, e.g. 0.001234, 123400.0 */
+            i32 no_pre_zero, pre_ofs, num_sep_pos, dot_set_pos;
+            u8 *num_hdr, *num_end, *num_sep, *dot_end;
             
-//             /* fill zeros */
-//             memset(buf, '0', 32);
+            /* fill zeros */
+            memset(buf, '0', 32);
             
-//             /* calculate the offset before the number */
-//             no_pre_zero = (dot_ofs > 0);
-//             pre_ofs = no_pre_zero ? 0 : (2 - dot_ofs);
-//             gcc_full_barrier(no_pre_zero); /* let gcc emit cmov */
-//             gcc_full_barrier(pre_ofs);
+            /* calculate the offset before the number */
+            no_pre_zero = (dot_ofs > 0);
+            pre_ofs = no_pre_zero ? 0 : (2 - dot_ofs);
+            gcc_full_barrier(no_pre_zero); /* let gcc emit cmov */
+            gcc_full_barrier(pre_ofs);
             
-//             /* write the number as digits */
-//             num_hdr = buf + pre_ofs;
-//             num_end = write_u64_len_16_to_17_trim(sig_dec, num_hdr);
+            /* write the number as digits */
+            num_hdr = buf + pre_ofs;
+            num_end = write_u64_len_16_to_17_trim(sig_dec, num_hdr);
             
-//             /* seperate these digits to leave a space for the dot */
-//             num_sep_pos = no_pre_zero ? dot_ofs : 0;
-//             num_sep = num_hdr + num_sep_pos;
-//             byte_move_16(num_sep + no_pre_zero, num_sep);
-//             num_end += no_pre_zero;
+            /* seperate these digits to leave a space for the dot */
+            num_sep_pos = no_pre_zero ? dot_ofs : 0;
+            num_sep = num_hdr + num_sep_pos;
+            byte_move_16(num_sep + no_pre_zero, num_sep);
+            num_end += no_pre_zero;
             
-//             /* write the dot */
-//             dot_set_pos = yy_max(dot_ofs, 1);
-//             buf[dot_set_pos] = '.';
+            /* write the dot */
+            dot_set_pos = yy_max(dot_ofs, 1);
+            buf[dot_set_pos] = '.';
             
-//             /* return the ending */
-//             dot_end = buf + dot_ofs + 2;
-//             return yy_max(dot_end, num_end);
+            /* return the ending */
+            dot_end = buf + dot_ofs + 2;
+            return yy_max(dot_end, num_end);
             
-//         } else {
-//             /* write with scientific notation, e.g. 1.234e56 */
-//             end = write_u64_len_16_to_17_trim(sig_dec, buf + 1);
-//             end -= (end == buf + 2); /* remove '.0', e.g. 2.0e34 -> 2e34 */
-//             exp_dec += sig_len - 1;
-//             buf[0] = buf[1];
-//             buf[1] = '.';
-//             return write_f64_exp(exp_dec, end);
-//         }
+        } else {
+            /* write with scientific notation, e.g. 1.234e56 */
+            end = write_u64_len_16_to_17_trim(sig_dec, buf + 1);
+            end -= (end == buf + 2); /* remove '.0', e.g. 2.0e34 -> 2e34 */
+            exp_dec += sig_len - 1;
+            buf[0] = buf[1];
+            buf[1] = '.';
+            return write_f64_exp(exp_dec, end);
+        }
         
-//     } else {
-//         /* subnormal number */
-//         sig_bin = sig_raw;
-//         exp_bin = 1 - F64_EXP_BIAS - F64_SIG_BITS;
+    } else {
+        /* subnormal number */
+        sig_bin = sig_raw;
+        exp_bin = 1 - F64_EXP_BIAS - F64_SIG_BITS;
         
-//         /* binary to decimal */
-//         f64_bin_to_dec(sig_bin, exp_bin, &sig_dec, &exp_dec);
+        /* binary to decimal */
+        yy_double_f64_bin_to_dec(sig_bin, exp_bin, &sig_dec, &exp_dec);
         
-//         /* write significand part */
-//         end = write_u64_len_1_to_17(sig_dec, buf + 1);
-//         buf[0] = buf[1];
-//         buf[1] = '.';
-//         exp_dec += (i32)(end - buf) - 2;
+        /* write significand part */
+        end = write_u64_len_1_to_17(sig_dec, buf + 1);
+        buf[0] = buf[1];
+        buf[1] = '.';
+        exp_dec += (i32)(end - buf) - 2;
         
-//         /* trim trailing zeros */
-//         end -= *(end - 1) == '0'; /* branchless for last zero */
-//         end -= *(end - 1) == '0'; /* branchless for second last zero */
-//         while (*(end - 1) == '0') end--; /* for unlikely more zeros */
-//         end -= *(end - 1) == '.'; /* remove dot, e.g. 2.e-321 -> 2e-321 */
+        /* trim trailing zeros */
+        end -= *(end - 1) == '0'; /* branchless for last zero */
+        end -= *(end - 1) == '0'; /* branchless for second last zero */
+        while (*(end - 1) == '0') end--; /* for unlikely more zeros */
+        end -= *(end - 1) == '.'; /* remove dot, e.g. 2.e-321 -> 2e-321 */
         
-//         /* write exponent part */
-//         return write_f64_exp(exp_dec, end);
-//     }
-// }
+        /* write exponent part */
+        return write_f64_exp(exp_dec, end);
+    }
+}
 
-// char *yy_double_to_string(double val, char *buf) {
-//     u64 raw = f64_to_raw(val);
-//     return (char *)write_f64_raw((u8 *)buf, raw);
-// }
+char *yy_double_to_string(double val, char *buf) {
+    u64 raw = f64_to_raw(val);
+    return (char *)write_f64_raw((u8 *)buf, raw);
+}
+
+}
