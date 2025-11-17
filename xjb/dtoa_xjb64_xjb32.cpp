@@ -640,7 +640,6 @@ u64 encode_8digit(const u64 x, u64* ASCII){
 
     // 12345678 => "12345678" 
     const u64 ZERO = (0x30303030ull << 32) + 0x30303030ull;
-    u64 D9 = x >= (u64)1e7;
     u64 aabbccdd = x;
     u64 aabb_ccdd_merge = (aabbccdd << 32) - ((10000ull<<32) - 1) * ((aabbccdd * 109951163) >> 40);
     u64 aa_bb_cc_dd_merge = (aabb_ccdd_merge << 16) - ((100ull<<16) - 1) * (((aabb_ccdd_merge * 10486) >> 20) & ((0x7FULL << 32) | 0x7FULL));
