@@ -633,12 +633,14 @@ u64 encode_8digit(const u64 x, u64* ASCII){
 
     // 12345678 => "12345678" 
     const u64 ZERO = (0x30303030ull << 32) + 0x30303030ull;
+    u64 D9 = x >= (u64)1e7;
     u64 aabbccdd = x;
     u64 aabb_ccdd_merge = (aabbccdd << 32) - ((10000ull<<32) - 1) * ((aabbccdd * 109951163) >> 40);
     u64 aa_bb_cc_dd_merge = (aabb_ccdd_merge << 16) - ((100ull<<16) - 1) * (((aabb_ccdd_merge * 10486) >> 20) & ((0x7FULL << 32) | 0x7FULL));
     u64 aabbccdd_BCD = (aa_bb_cc_dd_merge << 8) - ((10ull<<8) - 1) * (((aa_bb_cc_dd_merge * 103) >> 10) & ((0xFULL << 48) | (0xFULL << 32) | (0xFULL << 16) | 0xFULL));
+    aabbccdd_BCD = D9 ? aabbccdd_BCD : (aabbccdd_BCD >> 8);
     u64 tz = u64_lz_bits(aabbccdd_BCD) / 8;
-    u64 aabbccdd_ASCII = aabbccdd_BCD | ZERO;
+    u64 aabbccdd_ASCII = aabbccdd_BCD + ZERO;
     *ASCII = aabbccdd_ASCII;
     return tz;
 }
@@ -2043,7 +2045,6 @@ char* xjb64(double v,char* buf)
             one += (bitarray_irregular[ieee_exponent/64]>>(ieee_exponent%64)) & 1;
 #endif
         
-
         // when -3<=e10 && e10 <= 15 ; we use %lf format print float number
         const int e10_DN = -3;//do not change this value
         const int e10_UP = 15;//do not change this value
@@ -2150,7 +2151,7 @@ char* xjb32(float v,char* buf)
     u32 sign = vi>>31;
     buf+=sign;
 
-    u32 dec,m;
+    u64 dec,m;
     int e10;
     u32 tz;// tail zero
     //u32 dec_sig_len;// decimal length
@@ -2274,22 +2275,22 @@ char* xjb32(float v,char* buf)
     k = (exp_bin * 315653 - (regular ? 0 : 131237 ))>>20;
 #endif
     int h = exp_bin + (((-1 - k) * 217707) >> 16); // [-4,-1]
-    // static const u64 *pow10 = &pow10_table[32];
-    // u64 pow10_hi = pow10[(-1 - k)];
-    u64 pow10_hi = pow10_table[(-1-k)+32];
+    static const u64 *pow10 = &pow10_table[32];
+    u64 pow10_hi = pow10[(-1 - k)];
+    //u64 pow10_hi = pow10_table[(-1-k)+32];
     u64 even = ((sig_bin + 1) & 1);
     const int BIT = 36; // [33,36] all right
     u64 cb = sig_bin << (h + 1 + BIT);
     u64 sig_hi = (cb * (__uint128_t)pow10_hi) >> 64; // one mulxq instruction on x86 , need BMI2
     u64 dot_one_36bit = sig_hi & (((u64)1 << BIT) - 1); // only need high 36 bit
     u64 half_ulp = (pow10_hi >> ((64 - BIT) - h)) + even;
-    //u64 up = (half_ulp  > (((u64)1 << BIT) - 1) - dot_one_36bit);
-    u64 up = (half_ulp + dot_one_36bit) >> BIT;
+    u64 up = (half_ulp  > (((u64)1 << BIT) - 1) - dot_one_36bit);
+    //u64 up = (half_ulp + dot_one_36bit) >> BIT;
     u64 down =  ((half_ulp >> (1 - regular)) > dot_one_36bit);
     u64 up_down = up + down;
     m = (sig_hi >> BIT) + up;
-    D9 = m >= (u32)1e7;
-    u64 mr = D9 ? m : m * 10;//remove left zero
+    D9 = m >= (u64)1e7;
+    //u64 mr = D9 ? m : m * 10;//remove left zero
     u64 ASCII_8;
     tz = encode_8digit(m,&ASCII_8);
     //dec_sig_len = up_down ? 8 - tz : 8 + D9;
@@ -2436,7 +2437,7 @@ char* xjb32(float v,char* buf)
 0x38332b65, // e10 = 38
 };
     static const u32 *exp_ptr = (u32*)&exp_result_precalc[45];
-    u32 exp_result = exp_ptr[e10];
+    //u32 exp_result = exp_ptr[e10];
     if(m < (u32)1e6 )[[unlikely]]
     {
         u64 lz = 0;
@@ -2446,12 +2447,12 @@ char* xjb32(float v,char* buf)
         buf[0] = buf[lz];
         byte_move_8(&buf[2], &buf[lz+1]);
         exp_pos = exp_pos - lz + 1 - (exp_pos - lz == 1 );
-        //buf += exp_pos;
-        exp_result = exp_ptr[e10];
-        //*(u32*)buf = exp_result;
-        //buf += 4;
-        //buf[0]='\0';
-        //return buf;
+        // buf += exp_pos;
+        // u32 exp_result = exp_ptr[e10];
+        // *(u32*)buf = exp_result;
+        // buf += 4;
+        // buf[0]='\0';
+        // return buf;
     }
 //write exponent    
 #if 0
@@ -2462,7 +2463,7 @@ char* xjb32(float v,char* buf)
         u64 exp_result = e | ( bc_ASCII << 16 );
         exp_result = ( e10_DN <= e10 && e10 <= e10_UP ) ? 0 : exp_result;// e10_DN<=e10 && e10<=e10_UP : no need to print exponent
 #else   // use lookup table to get exp_result maybe faster than above code , but need 5064byte lookup table ;
-        //u32 exp_result = exp_ptr[e10];
+        u32 exp_result = exp_ptr[e10];
 #endif
     buf += exp_pos;
     *(u64*)buf = exp_result;// contain '\0';
