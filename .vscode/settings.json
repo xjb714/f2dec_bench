@@ -93,6 +93,12 @@
         "version": "cpp",
         "yy_double.c": "cpp",
         "stddef.h": "c",
-        "yyjson.c": "cpp"
+        "yyjson.c": "cpp",
+        "ios": "cpp",
+        "__bit_reference": "cpp",
+        "__hash_table": "cpp",
+        "__split_buffer": "cpp",
+        "forward_list": "cpp",
+        "__locale": "cpp"
     }
 }
