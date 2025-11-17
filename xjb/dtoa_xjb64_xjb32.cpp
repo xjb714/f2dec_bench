@@ -205,6 +205,13 @@
 #   endif
 #endif
 
+#ifndef is_intel_compiler
+#   if defined(__GNUC__) && defined(__GNUC_MINOR__) && \
+        (defined(__INTEL_COMPILER) || defined(__ICC))
+#       define is_intel_compiler 1
+#   endif 
+#endif
+
 /*
  Compiler barriers for single variable.
  
@@ -638,7 +645,7 @@ u64 encode_8digit(const u64 x, u64* ASCII){
     u64 aabb_ccdd_merge = (aabbccdd << 32) - ((10000ull<<32) - 1) * ((aabbccdd * 109951163) >> 40);
     u64 aa_bb_cc_dd_merge = (aabb_ccdd_merge << 16) - ((100ull<<16) - 1) * (((aabb_ccdd_merge * 10486) >> 20) & ((0x7FULL << 32) | 0x7FULL));
     u64 aabbccdd_BCD = (aa_bb_cc_dd_merge << 8) - ((10ull<<8) - 1) * (((aa_bb_cc_dd_merge * 103) >> 10) & ((0xFULL << 48) | (0xFULL << 32) | (0xFULL << 16) | 0xFULL));
-    aabbccdd_BCD = D9 ? aabbccdd_BCD : (aabbccdd_BCD >> 8);
+    aabbccdd_BCD = (x >= (u64)1e7) ? aabbccdd_BCD : (aabbccdd_BCD >> 8);
     u64 tz = u64_lz_bits(aabbccdd_BCD) / 8;
     u64 aabbccdd_ASCII = aabbccdd_BCD + ZERO;
     *ASCII = aabbccdd_ASCII;
@@ -2101,7 +2108,8 @@ char* xjb64(double v,char* buf)
         *(u64*)&buf[15+D17] = one;//write 2 byte
         byte_move_16(&buf[move_pos],&buf[dot_pos]);// dot_pos max = 16; require 32 byte buffer
         buf_origin[dot_pos] = '.';
-
+        static const u64 *exp_ptr = (u64*)&exp_result_precalc[324];
+        
 //process the some special case : subnormal number 
         if(m < (u64)1e14 ) [[unlikely]]
         {
@@ -2113,6 +2121,14 @@ char* xjb64(double v,char* buf)
             buf[0] = buf[lz];
             byte_move_16(&buf[2], &buf[lz+1]);
             exp_pos = exp_pos - lz + 1 - (exp_pos - lz == 1 );
+#if is_intel_compiler
+            buf += exp_pos;
+            u64 exp_result = exp_ptr[e10];
+            *(u64*)buf = exp_result;
+            return buf + 5;// return the end of buffer with '\0';
+#endif
+
+
         }
 // write exponent , set 0 to use lookup table to get exp_result , set 1 to use next code to calc exp_result 
 #if 0
@@ -2125,7 +2141,6 @@ char* xjb64(double v,char* buf)
         u64 exp_result = e | ( ( (e10_abs > 99u) ? a | ('0' | (1ull << 40)) | (bc_ASCII << 8) : bc_ASCII) << 16);
         exp_result = ( e10_DN <= e10 && e10 <= e10_UP ) ? 0 : exp_result;// e10_DN<=e10 && e10<=e10_UP : no need to print exponent
 #else   // use lookup table to get exp_result maybe faster than above code , but need 5064byte lookup table ;
-        static const u64 *exp_ptr = (u64*)&exp_result_precalc[324];
         u64 exp_result = exp_ptr[e10];
 #endif
         buf += exp_pos;
@@ -2289,8 +2304,8 @@ char* xjb32(float v,char* buf)
     u64 down =  ((half_ulp >> (1 - regular)) > dot_one_36bit);
     u64 up_down = up + down;
     m = (sig_hi >> BIT) + up;
-    D9 = m >= (u64)1e7;
-    //u64 mr = D9 ? m : m * 10;//remove left zero
+    D9 = m >= (u32)1e7;
+    u64 mr = D9 ? m : m * 10;//remove left zero
     u64 ASCII_8;
     tz = encode_8digit(m,&ASCII_8);
     //dec_sig_len = up_down ? 8 - tz : 8 + D9;

@@ -1,7 +1,11 @@
 //#include "dragonbox.cc"
 //#include "format-inl.h"
 //#include "fmt-12.1.0/include/fmt/format-inl.h"
-#include "format.cc"
+
+//#include "format.cc"
+
+#include "dragonbox_to_chars.h"
+#include "dragonbox_to_chars.cpp"
 
 
 void dragonbox_f64_to_dec(double v,unsigned long long* dec,int *e10)
@@ -14,7 +18,34 @@ void dragonbox_f64_to_dec(double v,unsigned long long* dec,int *e10)
     // *dec = res.significand;
     // *e10 = res.exponent;
 
-    auto res = fmt::v12::detail::dragonbox::to_decimal<double>(v);
+    // auto res = fmt::v12::detail::dragonbox::to_decimal<double>(v);
+    // *dec = res.significand;
+    // *e10 = res.exponent;
+
+    auto res = jkj::dragonbox::to_decimal<double>(v);
     *dec = res.significand;
     *e10 = res.exponent;
+}
+void dragonbox_f32_to_dec(float v,unsigned int* dec,int *e10)
+{
+    auto res = jkj::dragonbox::to_decimal<float>(v);
+    *dec = res.significand;
+    *e10 = res.exponent;
+}
+
+char* dragonbox_comp_f64_to_str(double x, char* buffer) {
+  return jkj::dragonbox::to_chars(x, buffer, jkj::dragonbox::policy::cache::compact);
+}
+
+
+char* dragonbox_full_f64_to_str(double x, char* buffer) {
+  return jkj::dragonbox::to_chars(x, buffer, jkj::dragonbox::policy::cache::full);
+}
+
+char* dragonbox_comp_f32_to_str(float x, char* buffer) {
+    return jkj::dragonbox::to_chars(x, buffer, jkj::dragonbox::policy::cache::compact);
+}
+
+char* dragonbox_full_f32_to_str(float x, char* buffer) {
+    return jkj::dragonbox::to_chars(x, buffer, jkj::dragonbox::policy::cache::full);
 }

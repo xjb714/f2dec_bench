@@ -4,16 +4,21 @@
 #include <random>
 
 #ifndef BENCH_DOUBLE
-#define BENCH_DOUBLE 1
+    #define BENCH_DOUBLE 1
 #endif
 
 #define BENCH_FLOAT !BENCH_DOUBLE
 
-const int is_bench_double_to_decimal = 0;
-const int is_bench_float_to_decimal = 0;
+#ifndef BENCH_STR
+    #define BENCH_STR 1
+#endif
 
-const int is_bench_double_to_string = 1;
-const int is_bench_float_to_string = 1;
+
+const int is_bench_double_to_decimal = !BENCH_STR;
+const int is_bench_float_to_decimal = !BENCH_STR;
+
+const int is_bench_double_to_string = BENCH_STR;
+const int is_bench_float_to_string = BENCH_STR;
 
 // double and float
 #include "schubfach/schubfach_i.hpp"
@@ -24,6 +29,7 @@ const int is_bench_float_to_string = 1;
 #include "yy/yy_i.hpp"
 #include "xjb/xjb64_i.hpp"
 #include "xjb/dtoa_xjb64_xjb32.cpp"
+#include "fmt/fmt_i.hpp"
 // #include "ldouble/ldouble_i.hpp"
 // #include "json/jnum.c"
 
@@ -82,19 +88,19 @@ void init_double()
 {
     auto t1 = getns();
 
-    data = (double *)malloc(N * sizeof(double));
-    dec = (unsigned long long *)malloc(N * sizeof(unsigned long long));
-    e10 = (int *)malloc(N * sizeof(int));
+    data = (double *)malloc(N_double * sizeof(double));
+    dec = (unsigned long long *)malloc(N_double * sizeof(unsigned long long));
+    e10 = (int *)malloc(N_double * sizeof(int));
 
     // #pragma omp parallel for
-    for (int i = 0; i < (N); ++i)
+    for (int i = 0; i < (N_double); ++i)
     {
         data[i] = gen_double_filter_NaN_Inf();
     }
     printf("generate random data finish\n");
 
-    memset(&dec[0], 0, N * sizeof(unsigned long long));
-    memset(&e10[0], 0, N * sizeof(int));
+    memset(&dec[0], 0, N_double * sizeof(unsigned long long));
+    memset(&e10[0], 0, N_double * sizeof(int));
 
     double_to_decimal_algorithm_set.clear();
 
@@ -115,7 +121,11 @@ void init_double()
     double_to_string_algorithm_set.push_back(std::string("schubfach_xjb64")); // 2
     double_to_string_algorithm_set.push_back(std::string("yy_double"));       // 3
     double_to_string_algorithm_set.push_back(std::string("yyjson"));          // 4
-    double_to_string_algorithm_set.push_back(std::string("xjb64"));           // 5
+    double_to_string_algorithm_set.push_back(std::string("dragonbox_comp"));  // 5
+    double_to_string_algorithm_set.push_back(std::string("dragonbox_full"));  // 6
+    double_to_string_algorithm_set.push_back(std::string("fmt_comp"));        // 7
+    double_to_string_algorithm_set.push_back(std::string("fmt_full"));        // 8
+    double_to_string_algorithm_set.push_back(std::string("xjb64"));           // 9
 
     // algorithm_set.push_back({std::string("ldouble"), ldouble_f64_to_dec});
 
@@ -155,6 +165,7 @@ void init_float()
     float_to_decimal_algorithm_set.push_back({std::string("ryu32"), ryu_f32_to_dec});
     float_to_decimal_algorithm_set.push_back({std::string("teju32"), teju_f32_to_dec});
     float_to_decimal_algorithm_set.push_back({std::string("yyjson32"), yyjson_f32_to_dec});
+    float_to_decimal_algorithm_set.push_back({std::string("dragonbox32"), dragonbox_f32_to_dec});
 
     float_to_string_algorithm_set.clear();
 
@@ -163,6 +174,10 @@ void init_float()
     float_to_string_algorithm_set.push_back(std::string("schubfach_xjb32"));
     float_to_string_algorithm_set.push_back(std::string("xjb32"));
     float_to_string_algorithm_set.push_back(std::string("yyjson32"));
+    float_to_string_algorithm_set.push_back(std::string("dragonbox_comp32"));
+    float_to_string_algorithm_set.push_back(std::string("dragonbox_full32"));
+    float_to_string_algorithm_set.push_back(std::string("fmt_comp32"));
+    float_to_string_algorithm_set.push_back(std::string("fmt_full32"));
 
     printf("init float algorithm set finish\n");
 }
@@ -192,6 +207,7 @@ void free_float()
 }
 void bench_double_single_impl(int i)
 {
+    const int N = N_double;
     std::string name;
     if (is_bench_double_to_decimal)
         name = double_to_decimal_algorithm_set[i].first;
@@ -203,7 +219,7 @@ void bench_double_single_impl(int i)
     // void (*func)(double, unsigned long long *, int *) = double_to_decimal_algorithm_set[i].second;
     unsigned long long *dec_p = &dec[0];
     int *e10_p = &e10[0];
-    printf("%d. bench %15s : ", i, name.c_str());
+    printf("%d. bench %16s : ", i, name.c_str());
 
     auto t1 = getns();
 
@@ -263,6 +279,18 @@ void bench_double_single_impl(int i)
                 yyjson_f64_to_str(data[j], buffer);
         if (i == 5)
             for (int j = 0; j < N; ++j)
+                dragonbox_comp_f64_to_str(data[j], buffer);
+        if (i == 6)
+            for (int j = 0; j < N; ++j)
+                dragonbox_full_f64_to_str(data[j], buffer);
+        if (i == 7)
+            for (int j = 0; j < N; ++j)
+                fmt_comp_f64_to_str(data[j], buffer);
+        if (i == 8)
+            for (int j = 0; j < N; ++j)
+                fmt_full_f64_to_str(data[j], buffer);
+        if (i == 9)
+            for (int j = 0; j < N; ++j)
                 xjb64_32::xjb64(data[j], buffer);
     }
 
@@ -278,9 +306,6 @@ void bench_double_single_impl(int i)
 }
 void bench_float_single_impl(int i)
 {
-    unsigned int dec;
-    int e10;
-    unsigned int sum = 0;
     const int N = N_float;
     std::string name;
     if (is_bench_double_to_decimal)
@@ -292,7 +317,7 @@ void bench_float_single_impl(int i)
     // void (*func)(float*, unsigned int *, int *) = algorithm_float_set[i].second;
     unsigned int *dec_p = &dec_float[0];
     int *e10_p = &e10_float[0];
-    printf("%d. bench %15s : ", i, name.c_str());
+    printf("%d. bench %16s : ", i, name.c_str());
 
     auto t1 = getns();
 
@@ -321,6 +346,9 @@ void bench_float_single_impl(int i)
         if (i == 5)
             for (int j = 0; j < N; ++j)
                 yyjson_f32_to_dec(data_float[j], &dec_p[j], &e10_p[j]);
+        if (i == 6)
+            for (int j = 0; j < N; ++j)
+                dragonbox_f32_to_dec(data_float[j], &dec_p[j], &e10_p[j]);
     }
 
     if (is_bench_float_to_string)
@@ -341,6 +369,18 @@ void bench_float_single_impl(int i)
         if (i == 4)
             for (int j = 0; j < N; ++j)
                 yyjson_f32_to_str(data_float[j], buffer);
+        if (i == 5)
+            for (int j = 0; j < N; ++j)
+                dragonbox_comp_f32_to_str(data_float[j], buffer);
+        if (i == 6)
+            for (int j = 0; j < N; ++j)
+                dragonbox_full_f32_to_str(data_float[j], buffer);
+        if (i == 7)
+            for (int j = 0; j < N; ++j)
+                fmt_comp_f32_to_str(data_float[j], buffer);
+        if (i == 8)
+            for (int j = 0; j < N; ++j)
+                fmt_full_f32_to_str(data_float[j], buffer);
     }
 
     auto t2 = getns();
@@ -575,7 +615,6 @@ int main()
     bench_float();
 
     // check_all_float_number(); // check all float number , may cost long time
-
 #endif
 
 #if BENCH_DOUBLE

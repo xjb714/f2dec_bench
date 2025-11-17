@@ -7835,7 +7835,7 @@ static_noinline u8 *write_f32_raw(u8 *buf, u64 raw_f64,
 
     /* cast double to float */
     //raw = f32_to_bits(f64_to_f32(f64_from_bits(raw_f64)));
-    raw = *(u32*)&raw_f64;
+    raw = *(u32*)&raw_f64;// modify code to  get correct result
 
     /* decode raw bytes from IEEE-754 double format. */
     sign = (bool)(raw >> (F32_BITS - 1));
