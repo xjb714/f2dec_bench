@@ -735,14 +735,3 @@ static inline void xjb64_f64_to_dec(double v,unsigned long long* dec,int *e10)
         *e10 = k;
     }
 }
-
-static inline char* xjb64_dtoa_fast(double v,char* buffer) {
-    u64  ieee = *((u64*)&v);
-    u64  ieee_mant = ieee & ((1ull << 52) - 1);
-    int  ieee_exponent = (int)((ieee >> 52) & 0x7ff);
-    u64  sign = (ieee >> 63) ;
-
-    char* p = buffer;
-    p[0] = '-';
-    p+=sign;
-}
