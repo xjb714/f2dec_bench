@@ -22,13 +22,13 @@ void dragonbox_f64_to_dec(double v,unsigned long long* dec,int *e10)
     // *dec = res.significand;
     // *e10 = res.exponent;
 
-    auto res = jkj::dragonbox::to_decimal<double>(v);
+    auto res = jkj::dragonbox::to_decimal<double>(v,jkj::dragonbox::policy::sign::ignore);
     *dec = res.significand;
     *e10 = res.exponent;
 }
 void dragonbox_f32_to_dec(float v,unsigned int* dec,int *e10)
 {
-    auto res = jkj::dragonbox::to_decimal<float>(v);
+    auto res = jkj::dragonbox::to_decimal<float>(v,jkj::dragonbox::policy::sign::ignore);
     *dec = res.significand;
     *e10 = res.exponent;
 }
