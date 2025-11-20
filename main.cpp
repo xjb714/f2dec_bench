@@ -562,6 +562,34 @@ void check_irregular()
     //     else printf("};\n");
     // }
 }
+void check_special_value(){
+    // all double value from https://github.com/xjb714/xjb/blob/main/py_test/test8.py
+    u64 num_u64[10]={
+                0x0D17C0747BD76FA1,
+                0x0D27C0747BD76FA1,
+                0x4D73DE005BD620DF,
+                0x4D83DE005BD620DF,
+                0x4D93DE005BD620DF,
+                0x612491daad0ba280,
+                0x6159b651584e8b20,
+                0x619011f2d73116f4,
+                0x61c4166f8cfd5cb1,
+                0x61d4166f8cfd5cb1
+            };
+    unsigned error_sum = 0;
+    for(int i=0;i<10;++i){
+        double num = *(double*)&num_u64[i];
+        error_sum += check_xjb_and_schubfach_xjb(num);
+    }
+    if (error_sum == 0)
+    {
+        printf("check_special_value ok\n");
+    }
+    else
+    {
+        printf("check_special_value fail error sum = %u\n", error_sum);
+    }
+}
 void check_rand_double()
 {
     unsigned error_sum = 0;
@@ -585,6 +613,7 @@ void check_double()
 {
     printf("\ncheck start , may cost long time , please wait\n");
     printf("<=== check xjb64 algorithm ; use schubfach_xjb for correct result ===>\n");
+    check_special_value();
     check_subnormal();
     check_float(); // not contain subnormal float  , very slow
     check_irregular();
@@ -620,7 +649,7 @@ int main()
 #if BENCH_DOUBLE
     bench_double();
 
-    // check_double(); // check double correctness , may cost long time
+    check_double(); // check double correctness , may cost long time
 #endif
 
     return 0;
