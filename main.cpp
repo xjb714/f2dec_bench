@@ -641,9 +641,9 @@ int main()
 {
 
 #if BENCH_FLOAT
-    bench_float();
+    //bench_float();
 
-    // check_all_float_number(); // check all float number , may cost long time
+    check_all_float_number(); // check all float number , may cost long time
 #endif
 
 #if BENCH_DOUBLE
