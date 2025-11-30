@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <string.h> // memcpy
 
 // check cpu has neon or sse2 ; most all CPU has neon or sse2;
 
@@ -28,14 +29,30 @@
     link : https://github.com/xjb714/xjb
     date : 2025-11-10
 
+    this file contains the implementation of dtoa_xjb64 and ftoa_xjb32 function.
+    64-bit version : dtoa_xjb64 ; print a double number to buffer string
+    32-bit version : ftoa_xjb32 ; print a float number to buffer string
+    dtoa_xjb64(double x, char* buf) == xjb64_32::xjb64(double x, char* buf)
+    ftoa_xjb32(float x, char* buf) == xjb64_32::xjb32(float x, char* buf)
+    these two functions only run on little-endian system.
+
+    (1)dtoa_xjb64
     function : char* dtoa_xjb64(double x, char* buf)
     input    : double x  , A double number
-               char* buf , At least 32byte
+               char* buf , At least 33byte
     output   : The function returns a pointer to the end of the string. The string is null-terminated.
-    this function only run on little-endian system.
+
+    (2)ftoa_xjb32
+    function : char* ftoa_xjb32(float x, char* buf)
+    input    : float x  , A float number
+               char* buf , At least 24byte
+    output   : The function returns a pointer to the end of the string. The string is null-terminated.
+    
 
     dtoa_xjb64 is a function that converts a double number to a string that satisfies the requirements of the Steele & White algorithm.
+    ftoa_xjb32 is a function that converts a float number to a string that satisfies the requirements of the Steele & White algorithm.
 
+    hera are some expample for dtoa_xjb64 function :
     example : input   =>   output
               123     =>   "123.0"
               100     =>   "100.0"
@@ -371,7 +388,7 @@ typedef uint8_t u8;
         typedef __m128i byte16_reg; // 128 bit register for sse2
     #endif
 #else
-    typedef struct{
+        typedef struct{
             u64 hi;
             u64 lo;
         }byte16_reg;
@@ -659,21 +676,29 @@ void byte_move_16(void * dst,const void* src){
     __m128i src_value = _mm_loadu_si128((const __m128i*)src);
     _mm_storeu_si128((__m128i*)dst, src_value);
 #else
-    u64 hi = *(((u64*)src) + 0);//read 8 bytes from src;
-    u64 lo = *(((u64*)src) + 1);//read 8 bytes from src;
-    *(((u64*)dst) + 0) = hi;
-    *(((u64*)dst) + 1) = lo;
+    // avoid overlap issue
+    u64 hi;
+    u64 lo;
+    char * psrc = (char*)src;
+    memcpy(&hi, psrc, 8);
+    memcpy(&lo, psrc + 8, 8);
+    char * pdst = (char*)dst;
+    memcpy(pdst, &hi, 8);
+    memcpy(pdst + 8, &lo, 8);
 #endif
 }
 
 void byte_move_8(void * dst,const void* src){
-    // move 8byte from src to dst;
-    *(((u64*)dst) + 0) = *(((u64*)src) + 0);
+    // move 8byte from src to dst; no overlap issue
+    u64 src_value;
+    memcpy(&src_value, src, 8);
+    memcpy(dst, &src_value, 8);
 }
 //extern "C"
 char* xjb64(double v,char* buf)
 {
-    u64 vi = *(u64*)&v;
+    u64 vi;
+    memcpy(&vi, &v, sizeof(v));//double to u64 bit copy
     u64 sign = vi>>63;
     buf[0]='-';
     buf+=sign;
@@ -701,11 +726,16 @@ char* xjb64(double v,char* buf)
     //if( (vi << 1) < 3 || (vi << 1) >= (2047ull<<53)  )[[unlikely]]
     if  ( (vi<<1) - 3 >= (2047ull<<53) - 3 )[[unlikely]]
     {
-        *(u64*)buf = ((vi << 1) < 3) ? ((vi << 1) ? *(u64*)"5e-324\0" : *(u32*)"0.0")
-                                     : (vi << 1) == (2047ull<<53) ? *(u32*)"Inf" : *(u32*)"NaN";//end with '\0'
-        return buf + ((vi << 1) - 3 == (u64)-1 ? 6 : 3);
+        // *(u64*)buf = ((vi << 1) < 3) ? ((vi << 1) ? *(u64*)"5e-324\0" : *(u32*)"0.0")
+        //                              : (vi << 1) == (2047ull<<53) ? *(u32*)"Inf" : *(u32*)"NaN";//end with '\0'
+        if( (vi << 1) == 0 )memcpy(buf , "0.0", 4);
+        if( (vi << 1) == (1 << 1) )memcpy(buf , "5e-324\0", 8);
+        if( (vi << 1) == (2047ull<<53) )memcpy(buf , "Inf", 4);
+        if( (vi << 1) > (2047ull<<53) )memcpy(buf , "NaN", 4);
+        return buf + ((vi << 1) - 3 == (u64)-1 ? 6 : 3);//end with '\0'
     }
-    *(u64*)buf = *(u64*)"0.00000";
+    //*(u64*)buf = *(u64*)"0.00000";
+    memcpy(buf, "0.000000", 8);
     u64 c;
     int32_t q;
 #ifdef __amd64__    
@@ -2016,7 +2046,7 @@ char* xjb64(double v,char* buf)
         byte16_reg ASCII_16;
         u64 mr = D17 ? m : m * 10;//remove left zero
         tz = endcode_16digit_fast(mr,&ASCII_16);// convert mr to ASCII , and return tail zero number.
-#if yy_is_real_gcc //  for gcc compiler , prevent branch instruction 
+#if yy_is_real_gcc //  for gcc compiler , prevent branch instruction cause branch miss;
 
 #if HAS_SSE2 // when use sse2,the return value equal to (tail zero number + 16);
         dec_sig_len_ofs = ( ( (2+16+16)*256 + 2+16 - tz*256 + D17 ) >> (up_down ? 8 : 0)) & 0xff;
@@ -2101,11 +2131,15 @@ char* xjb64(double v,char* buf)
         _mm_storeu_si128((__m128i*)buf, ASCII_16);
     #endif
 #else
-        *(u64*)&buf[0] = ASCII_16.hi;
-        *(u64*)&buf[8] = ASCII_16.lo;
+        //*(u64*)&buf[0] = ASCII_16.hi;
+        //*(u64*)&buf[8] = ASCII_16.lo;
+        memcpy(buf + 0, &ASCII_16.hi, 8);
+        memcpy(buf + 8, &ASCII_16.lo, 8);
 #endif
-        *(u64*)&buf[15+D17] = one;//write 2 byte
-        byte_move_16(&buf[move_pos],&buf[dot_pos]);// dot_pos max = 16; require 32 byte buffer
+        //*(u64*)&buf[15+D17] = one;//write 2 byte
+        memcpy(buf + 15 + D17, &one, 8);
+        //byte_move_16(&buf[move_pos],&buf[dot_pos]);// dot_pos+first_sig_pos+sign max = 16+1 = 17; require 17+16=33 byte buffer
+        byte_move_16(buf + move_pos , buf + dot_pos );
         buf_origin[dot_pos] = '.';
         static const u64 *exp_ptr = (u64*)&exp_result_precalc[324];
         
@@ -2118,16 +2152,16 @@ char* xjb64(double v,char* buf)
             lz += 2;
             e10 -= lz - 1;
             buf[0] = buf[lz];
-            byte_move_16(&buf[2], &buf[lz+1]);
+            //byte_move_16(&buf[2], &buf[lz+1]);
+            byte_move_16(buf+2, buf+lz+1);
             exp_pos = exp_pos - lz + 1 - (exp_pos - lz == 1 );
 #if is_intel_compiler
             buf += exp_pos;
             u64 exp_result = exp_ptr[e10];
-            *(u64*)buf = exp_result;
+            //*(u64*)buf = exp_result;
+            memcpy(buf, &exp_result, 8);
             return buf + 5;// return the end of buffer with '\0';
 #endif
-
-
         }
 // write exponent , set 0 to use lookup table to get exp_result , set 1 to use next code to calc exp_result 
 #if 0
@@ -2143,15 +2177,16 @@ char* xjb64(double v,char* buf)
         u64 exp_result = exp_ptr[e10];
 #endif
         buf += exp_pos;
-        *(u64*)buf = exp_result;
+        //*(u64*)buf = exp_result;
+        memcpy(buf, &exp_result, 8);
         //u64 exp_len = (e10_DN<=e10 && e10<= e10_UP ) ? 0 : (4 | (e10_abs > 99u) ) ;// "e+20" "e+308" : 4 or 5
         u64 exp_len = exp_result >> 56; // 0 or 4 or 5 ; equal to above code
         return buf + exp_len;// return the end of buffer with '\0';
 }
 
-#if 1
 char* xjb32(float v,char* buf)
 {
+    // all lut size = 336+144+616 = 1096byte
     // recommend buf size >= 24byte;
 
     // benchmark result on AMD R7-7840H
@@ -2159,7 +2194,8 @@ char* xjb32(float v,char* buf)
     // icpx   : 33-34 cycle
     // g++    : 35-36 cycle 
 
-    u32 vi = *(u32*)&v;
+    u32 vi;
+    memcpy(&vi, &v, 4);
 
     buf[0]='-';
     u32 sign = vi>>31;
@@ -2176,15 +2212,16 @@ char* xjb32(float v,char* buf)
 
     if( (vi << 1) == 0 )[[unlikely]]
     {
-        *(u32*)buf = *(u32*)"0.0";//end with '\0'
+        memcpy(buf, "0.0" , 4);//end with '\0'
         return buf + 3;
     }
     if(exp == 255)[[unlikely]]
     {
-        *(u32*)buf = sig ? *(u32*)"NaN" : *(u32*)"Inf";//end with '\0'
+        memcpy(buf, sig ? "NaN" : "Inf", 4);//end with '\0'
         return buf + 3;
     }
-    *(u64*)buf = *(u64*)"0.00000";
+    //*(u64*)buf = *(u64*)"0.00000";
+    memcpy(buf ,"0.000000",8);
 
     // size = 77*8 = 616 byte
     static const u64 pow10_table[(44 - (-32) + 1)] = {
@@ -2328,6 +2365,7 @@ char* xjb32(float v,char* buf)
 
     const int e10_DN = -3;
     const int e10_UP = 7;
+    // size = 12*12 = 144 byte
     static const u8 e10_variable_data[e10_UP-(e10_DN) + 1 + 1][3+9]={
 4,1,1,1,2,3,4,5,6,7,8,9,// e10=-3
 3,1,1,1,2,3,4,5,6,7,8,9,// e10=-2
@@ -2358,12 +2396,15 @@ char* xjb32(float v,char* buf)
     //     ) ) + 1;
     char* buf_origin = (char*)buf;
     buf += first_sig_pos;
-    byte_move_8(buf,&ASCII_8);//7 or 8 byte
-    *(u64*)&buf[7+D9] = one;// use u32 , gcc may cause error when v = 1e-45 , why?
-    byte_move_8(&buf[move_pos],&buf[dot_pos]);
+    //byte_move_8(buf,&ASCII_8);//7 or 8 byte
+    memcpy(buf, &ASCII_8, 8);
+    //memcpy(&buf[7 + D9], &one, 8);
+    memcpy(buf + 7 + D9, &one, 8);
+    //byte_move_8(&buf[move_pos],&buf[dot_pos]);
+    byte_move_8(buf + move_pos , buf + dot_pos);
     buf_origin[dot_pos] = '.';
     
-    // -45 -> 38
+    // -45 -> 38 ; size = 84*4 =  336 byte
     static const u32 exp_result_precalc[45 + 38 + 1]={
 0x35342d65, // e10 = -45
 0x34342d65, // e10 = -44
@@ -2459,11 +2500,12 @@ char* xjb32(float v,char* buf)
         lz += 2;
         e10 -= lz - 1;
         buf[0] = buf[lz];
-        byte_move_8(&buf[2], &buf[lz+1]);
+        //byte_move_8(&buf[2], &buf[lz+1]);
+        byte_move_8(buf + 2, buf+lz+1);
         exp_pos = exp_pos - lz + 1 - (exp_pos - lz == 1 );
         // buf += exp_pos;
         // u32 exp_result = exp_ptr[e10];
-        // *(u32*)buf = exp_result;
+        // memcpy(buf, &exp_result, 4);
         // buf += 4;
         // buf[0]='\0';
         // return buf;
@@ -2476,16 +2518,16 @@ char* xjb32(float v,char* buf)
         u64 bc_ASCII = bc * 256u - (256 * 10 - 1) * ((bc * 103u) >> 10) + (u64)('0' + '0' * 256); // 12 => "12"
         u64 exp_result = e | ( bc_ASCII << 16 );
         exp_result = ( e10_DN <= e10 && e10 <= e10_UP ) ? 0 : exp_result;// e10_DN<=e10 && e10<=e10_UP : no need to print exponent
-#else   // use lookup table to get exp_result maybe faster than above code , but need 5064byte lookup table ;
-        u32 exp_result = exp_ptr[e10];
+#else
+        u64 exp_result = exp_ptr[e10];
 #endif
     buf += exp_pos;
-    *(u64*)buf = exp_result;// contain '\0';
+    //*(u64*)buf = exp_result;// contain '\0';
+    memcpy(buf, &exp_result, 8);
     u32 exp_len = (e10_DN <= e10 && e10 <= e10_UP) ? 0 : 4;//may this is faster than below code?
     //u32 exp_len = (exp_result + ((1u<<28) - 1)) >> 28;//(e10_DN <= e10 && e10 <= e10_UP) ? 0 : 4
     buf += exp_len;
     return buf;
 }
-#endif
 
 }

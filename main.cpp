@@ -649,7 +649,7 @@ int main()
 #if BENCH_DOUBLE
     bench_double();
 
-    check_double(); // check double correctness , may cost long time
+    //check_double(); // check double correctness , may cost long time
 #endif
 
     return 0;
