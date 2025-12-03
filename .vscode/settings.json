@@ -99,6 +99,7 @@
         "__hash_table": "cpp",
         "__split_buffer": "cpp",
         "forward_list": "cpp",
-        "__locale": "cpp"
+        "__locale": "cpp",
+        "set": "cpp"
     }
 }
