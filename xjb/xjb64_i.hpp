@@ -740,14 +740,9 @@ static inline void xjb64_f64_to_dec(double v,unsigned long long* dec,int *e10)
 //compress lookup table version
 static inline void xjb64_comp_f64_to_dec(double v,unsigned long long* dec,int *e10)
 {
-    // next line need to proof correctness
-    // u64 one = ((dot_one * (u128)10 + ((dot_one == (u64)1 << 62) ? 0 : ((1ull<<63) + 6)) ) >> 64) ;
-
     unsigned long long vi = *(unsigned  long long*)&v;
     unsigned long long sig = vi & ((1ull<<52) - 1);
-    //unsigned long long exp = (vi>>52) & 2047;
     unsigned long long exp = (vi & (2047ull<<52) ) >> 52;
-    //unsigned long long exp = (vi << 1 ) >> 53;
 
     typedef __uint128_t u128;
     typedef uint64_t u64;
@@ -878,7 +873,7 @@ static inline void xjb64_comp_f64_to_dec(double v,unsigned long long* dec,int *e
         {
             //int base = ( get_e10 - (base_start * ratio) ) / ratio;// range = [0,22] = [0/27,616/27]
             int base = (( get_e10 - (base_start * ratio) ) * 1214) >> 15;// div 27 
-            int pow5_offset = get_e10 - (base + base_start) * ratio;// range = [0,26]
+            u32 pow5_offset = get_e10 - (base + base_start) * ratio;// range = [0,26]
             u64 pow10_base_high = pow10_base_and_pow5_rlz[base  * 2];
             u64 pow10_base_low = pow10_base_and_pow5_rlz[base * 2 + 1];
             u128 pow5_rlz_v = pow5_rlz_ptr[  pow5_offset ];

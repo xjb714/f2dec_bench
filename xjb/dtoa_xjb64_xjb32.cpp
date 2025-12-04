@@ -2208,6 +2208,7 @@ char* xjb32(float v,char* buf)
     u32 dec_sig_len_ofs;// = dec_sig_len + 2
     u32 D9;// 1:9 digits 0:8 digits
     u32 sig = vi & ((1<<23) - 1);
+    //u32 sig = (vi << 9 ) >> 9;
     u32 exp = (vi << 1 ) >> 24;
 
     if( (vi << 1) == 0 )[[unlikely]]

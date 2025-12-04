@@ -121,7 +121,7 @@ void init_double()
     double_to_decimal_algorithm_set.push_back({std::string("yy_double"), yy_double_f64_to_dec});           // 6
     double_to_decimal_algorithm_set.push_back({std::string("yy_double_full"), yy_double_full_f64_to_dec}); // 7
     double_to_decimal_algorithm_set.push_back({std::string("xjb64"), xjb64_f64_to_dec});                   // 8
-    double_to_decimal_algorithm_set.push_back({std::string("xjb64"), xjb64_comp_f64_to_dec});              // 9
+    double_to_decimal_algorithm_set.push_back({std::string("xjb64_comp"), xjb64_comp_f64_to_dec});         // 9
 
     double_to_string_algorithm_set.clear();
 
@@ -462,7 +462,7 @@ void bench_float_all_algorithm()
     }
 }
 
-unsigned check_xjb_and_schubfach_xjb(double d)
+unsigned check_xjb64_and_schubfach_xjb(double d)
 {
     // use schubfach_xjb as reference implementation
     unsigned long long dec, dec_xjb,dec_xjb_comp;
@@ -508,7 +508,7 @@ void check_subnormal()
     {
         u64 rnd = gen() & ((1ull << 52) - 1);
         double d = *(double *)&rnd;
-        error_sum += check_xjb_and_schubfach_xjb(d);
+        error_sum += check_xjb64_and_schubfach_xjb(d);
     }
     if (error_sum == 0)
     {
@@ -546,7 +546,7 @@ void check_float()
     {
         float f = *(float *)&i;
         double d = f; // convert float to double
-        error_sum += check_xjb_and_schubfach_xjb(d);
+        error_sum += check_xjb64_and_schubfach_xjb(d);
     }
     if (error_sum == 0)
     {
@@ -564,7 +564,7 @@ void check_irregular()
     {
         u64 num = exp << 52;
         double d = *(double *)&num;
-        u64 is_error = check_xjb_and_schubfach_xjb(d);
+        u64 is_error = check_xjb64_and_schubfach_xjb(d);
         error_sum += is_error;
         if (is_error)
         { // error
@@ -615,7 +615,7 @@ void check_special_value(){
     for(int i=0;i<10;++i){
         double num;
         memcpy(&num, &num_u64[i], sizeof(double));
-        error_sum += check_xjb_and_schubfach_xjb(num);
+        error_sum += check_xjb64_and_schubfach_xjb(num);
     }
     if (error_sum == 0)
     {
@@ -628,12 +628,12 @@ void check_special_value(){
 }
 void check_rand_double()
 {
-    unsigned error_sum = 0;
+    unsigned long error_sum = 0;
     const unsigned long NUM = 1 << 30; // 1e9
     for (unsigned long i = 0; i < NUM; ++i)
     {
         double d = gen_double_filter_NaN_Inf();
-        error_sum += check_xjb_and_schubfach_xjb(d);
+        error_sum += check_xjb64_and_schubfach_xjb(d);
     }
     if (error_sum == 0)
     {
@@ -679,13 +679,13 @@ int main()
 #if BENCH_FLOAT
     bench_float();
 
-    //check_all_float_number(); // check all float number , may cost long time
+    check_all_float_number(); // check all float number , may cost long time
 #endif
 
 #if BENCH_DOUBLE
     bench_double();
 
-    //check_double(); // check double correctness , may cost long time
+    check_double(); // check double correctness , may cost long time
 #endif
 
     return 0;

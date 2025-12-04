@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <string.h>
 static inline void xjb_f32_to_dec(float v,unsigned int* dec,int *e10)
 {
     typedef uint64_t u64;
@@ -182,8 +183,9 @@ static inline void xjb_comp_f32_to_dec(float v,unsigned int* dec,int *e10)
 
     int get_e10 = -1-k;
     int h = exp_bin + ((get_e10 * 217707) >> 16); // [-4,-1]
-    int p10_base = (get_e10 + 32) / 16;// [0,4]
-    u32 p5_off = get_e10 - ( (p10_base-2) * 16);// [0,15]
+    u32 p10_base_index = (u32)(get_e10 + 32) / 16;// [0,4]
+    int p10_base = p10_base_index * 16 - 32;
+    u32 p5_off = get_e10 - p10_base;// [0,15]
     const u64 p5_4 = 5*5*5*5;
     const u32 p5_0_3 = (125<<24) + (25<<16) + (5<<8) + 1; 
     static const u64 pow10_base_table_pow5[5 + 2] = { //40byte + 16byte = 56byte
@@ -196,8 +198,8 @@ static inline void xjb_comp_f32_to_dec(float v,unsigned int* dec,int *e10)
         1 + (p5_4<<32),
         ( p5_4*p5_4 ) + ( (p5_4*p5_4*p5_4) << 32)
     };
-    u64 pow10_base = pow10_base_table_pow5[p10_base]; //-2 to 2
-    int shift = (((get_e10*217707) >> 16) - ((( (p10_base-2) *16)*217707) >> 16) - p5_off);
+    u64 pow10_base = pow10_base_table_pow5[p10_base_index]; //-2 to 2
+    int shift = ((get_e10*217707) >> 16) - (( p10_base*217707) >> 16) - p5_off;
     // const u32 p5_4 = 5*5*5*5;
     // static const u32 pow5_table[4] = {//16 byte
     //     1,
@@ -206,7 +208,7 @@ static inline void xjb_comp_f32_to_dec(float v,unsigned int* dec,int *e10)
     //     p5_4*p5_4*p5_4
     // };
     u32 pow5_res;
-    static const char* start_ptr = ((char*)&pow10_base_table_pow5) + 5 * sizeof(u64);
+    static const char* start_ptr = ((char*)pow10_base_table_pow5) + 5 * sizeof(u64);
     memcpy(&pow5_res, start_ptr + 4 * (p5_off / 4), 4);
     u64 p5 = (u64)pow5_res * (u64)( (p5_0_3 >> ((p5_off % 4) * 8)) & 0xff );
 
